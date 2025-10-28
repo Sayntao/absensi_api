@@ -74,7 +74,7 @@ const router = createRouter({
     {
       path: '/all-absen',
       name: 'All Absen',
-      component: () => import('../views/HR/AllAbsen/index.vue'),
+      component: () => import('../views/HR/ReportAllAbsen/index.vue'),
       meta: {
         title: 'All Absen',
       },

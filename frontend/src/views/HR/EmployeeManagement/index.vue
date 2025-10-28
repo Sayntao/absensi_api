@@ -2,8 +2,8 @@
   <AdminLayout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
     <div class="space-y-5 sm:space-y-6">
-      <ComponentCard title="Employee Management Table">
-        <BasicTableOne />
+      <ComponentCard title="Data Semua Karyawan">
+        <UserTable />
       </ComponentCard>
     </div>
   </AdminLayout>
@@ -14,6 +14,6 @@ import { ref } from 'vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import ComponentCard from '@/components/common/ComponentCard.vue'
-import BasicTableOne from '@/components/tables/basic-tables/BasicTableOne.vue'
+import UserTable from '@/components/tables/UserTable.vue'
 const currentPageTitle = ref('Employee Management')
 </script>
