@@ -65,11 +65,7 @@ import { RouterLink } from 'vue-router'
 const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
 
-const menuItems = [
-  { href: '/profile', icon: UserCircleIcon, text: 'Edit profile' },
-  { href: '/profile', icon: SettingsIcon, text: 'Account settings' },
-  { href: '/profile', icon: InfoCircleIcon, text: 'Support' },
-]
+const menuItems = [{ href: '/profile', icon: SettingsIcon, text: 'Account settings' }]
 
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value

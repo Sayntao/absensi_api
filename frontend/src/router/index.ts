@@ -15,106 +15,13 @@ const router = createRouter({
       },
     },
     {
-      path: '/calendar',
-      name: 'Calendar',
-      component: () => import('../views/Others/Calendar.vue'),
-      meta: {
-        title: 'Calendar',
-      },
-    },
-    {
       path: '/profile',
       name: 'Profile',
-      component: () => import('../views/Others/UserProfile.vue'),
+      component: () => import('../views/Account/UserProfile.vue'),
       meta: {
         title: 'Profile',
       },
     },
-    {
-      path: '/form-elements',
-      name: 'Form Elements',
-      component: () => import('../views/Forms/FormElements.vue'),
-      meta: {
-        title: 'Form Elements',
-      },
-    },
-    {
-      path: '/basic-tables',
-      name: 'Basic Tables',
-      component: () => import('../views/Tables/BasicTables.vue'),
-      meta: {
-        title: 'Basic Tables',
-      },
-    },
-    {
-      path: '/line-chart',
-      name: 'Line Chart',
-      component: () => import('../views/Chart/LineChart/LineChart.vue'),
-    },
-    {
-      path: '/bar-chart',
-      name: 'Bar Chart',
-      component: () => import('../views/Chart/BarChart/BarChart.vue'),
-    },
-    {
-      path: '/alerts',
-      name: 'Alerts',
-      component: () => import('../views/UiElements/Alerts.vue'),
-      meta: {
-        title: 'Alerts',
-      },
-    },
-    {
-      path: '/avatars',
-      name: 'Avatars',
-      component: () => import('../views/UiElements/Avatars.vue'),
-      meta: {
-        title: 'Avatars',
-      },
-    },
-    {
-      path: '/badge',
-      name: 'Badge',
-      component: () => import('../views/UiElements/Badges.vue'),
-      meta: {
-        title: 'Badge',
-      },
-    },
-
-    {
-      path: '/buttons',
-      name: 'Buttons',
-      component: () => import('../views/UiElements/Buttons.vue'),
-      meta: {
-        title: 'Buttons',
-      },
-    },
-
-    {
-      path: '/images',
-      name: 'Images',
-      component: () => import('../views/UiElements/Images.vue'),
-      meta: {
-        title: 'Images',
-      },
-    },
-    {
-      path: '/videos',
-      name: 'Videos',
-      component: () => import('../views/UiElements/Videos.vue'),
-      meta: {
-        title: 'Videos',
-      },
-    },
-    {
-      path: '/blank',
-      name: 'Blank',
-      component: () => import('../views/Pages/BlankPage.vue'),
-      meta: {
-        title: 'Blank',
-      },
-    },
-
     {
       path: '/error-404',
       name: '404 Error',
@@ -138,6 +45,38 @@ const router = createRouter({
       component: () => import('../views/Auth/Signup.vue'),
       meta: {
         title: 'Signup',
+      },
+    },
+    {
+      path: '/my-absen',
+      name: 'My Absen',
+      component: () => import('../views/HR/MyAbsen/index.vue'),
+      meta: {
+        title: 'My Absen',
+      },
+    },
+    {
+      path: '/employee-management',
+      name: 'Employee Management',
+      component: () => import('../views/HR/EmployeeManagement/index.vue'),
+      meta: {
+        title: 'Employee Management',
+      },
+    },
+    {
+      path: '/shift-management',
+      name: 'Shift Management',
+      component: () => import('../views/HR/ShiftManagement/index.vue'),
+      meta: {
+        title: 'Shift Management',
+      },
+    },
+    {
+      path: '/all-absen',
+      name: 'All Absen',
+      component: () => import('../views/HR/AllAbsen/index.vue'),
+      meta: {
+        title: 'All Absen',
       },
     },
   ],
