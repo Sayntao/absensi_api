@@ -49,6 +49,7 @@
         </div>
       </div>
     </div>
+
     <div class="max-w-full overflow-x-auto custom-scrollbar">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead>
@@ -86,7 +87,7 @@
             <td
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
-              class="px-5 py-4 sm:px-6 whitespace-nowrap text-theme-sm text-gray-700 dark:text-gray-300"
+              class="px-5 py-4 sm:px-6 text-theme-sm text-gray-700 dark:text-gray-300"
             >
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
             </td>
@@ -171,23 +172,6 @@ import {
 } from '@tanstack/vue-table'
 import { ref, h } from 'vue'
 
-/**
- * @typedef {Object} Shift
- * @property {number} id - The unique ID of the shift.
- * @property {string} shift_name - The display name of the shift.
- * @property {string} check_in_time - The check-in time (e.g., '08:00:00').
- * @property {string} check_out_time - The check-out time (e.g., '17:00:00').
- * @property {string} created_at - The creation timestamp.
- * @property {string} created_by - The user who created the shift.
- * @property {string} updated_at - The last update timestamp.
- * @property {string} updated_by - The user who last updated the shift.
- */
-
-/**
- * Formats an ISO date string into a localized date and time string (id-ID locale).
- * @param {string | undefined} dateString - The ISO date string to format.
- * @returns {string} The formatted date/time string or '-' if input is empty.
- */
 const formatDateTime = (dateString) => {
   if (!dateString) return '-'
   const date = new Date(dateString)
@@ -200,14 +184,7 @@ const formatDateTime = (dateString) => {
   }).format(date)
 }
 
-/**
- * Calculates the duration between two time strings.
- * @param {string} checkIn - The check-in time string (e.g., '08:00:00').
- * @param {string} checkOut - The check-out time string (e.g., '17:00:00').
- * @returns {string} The duration string (e.g., '9 Jam 0 Menit').
- */
 const calculateDuration = (checkIn, checkOut) => {
-  // Simple logic: assumes checkout is later than check-in on the same day.
   const diffMs =
     new Date(`2000/01/01 ${checkOut}`).getTime() - new Date(`2000/01/01 ${checkIn}`).getTime()
   if (diffMs < 0) return 'Error'
@@ -216,9 +193,6 @@ const calculateDuration = (checkIn, checkOut) => {
   return `${hours} Jam ${minutes} Menit`
 }
 
-// --- STATE MANAGEMENT ---
-
-/** @type {Shift[]} */
 const defaultShiftData = [
   {
     id: 1,
@@ -250,7 +224,6 @@ const defaultShiftData = [
     updated_at: '2025-10-27T15:45:00Z',
     updated_by: 'HR Staff Budi',
   },
-  // Additional dummy data for pagination
   {
     id: 4,
     shift_name: 'Shift Malam (Keamanan)',
@@ -283,35 +256,27 @@ const defaultShiftData = [
   },
 ]
 
-/** @type {import('vue').Ref<Shift[]>} */
 const shifts = ref(defaultShiftData)
 
 const columnHelper = createColumnHelper()
 const sorting = ref([])
 const globalFilter = ref('')
 
-// Pagination State
 const pagination = ref({
   pageIndex: 0,
   pageSize: 5,
 })
-
-// --- COLUMN DEFINITION ---
-
 /** @type {import('@tanstack/vue-table').ColumnDef<Shift>[]} */
 const columns = [
-  // Column ID
   columnHelper.accessor('id', {
     header: 'ID',
     cell: (info) => info.getValue(),
     size: 50,
   }),
-  // Shift Name Column (shift_name)
   columnHelper.accessor('shift_name', {
     header: 'Nama Shift',
     cell: (info) => h('span', { class: 'font-medium' }, info.getValue()),
   }),
-  // Work Time Column (Composite)
   columnHelper.accessor('check_in_time', {
     id: 'WaktuKerja',
     header: 'Waktu Kerja',
@@ -319,40 +284,35 @@ const columns = [
       const checkIn = row.original.check_in_time.substring(0, 5)
       const checkOut = row.original.check_out_time.substring(0, 5)
       const duration = calculateDuration(row.original.check_in_time, row.original.check_out_time)
-      return h('div', { class: 'flex flex-col' }, [
+
+      return h('div', { class: 'flex flex-col whitespace-nowrap' }, [
         h('span', `${checkIn} - ${checkOut}`),
         h('span', { class: 'text-xs text-gray-400 dark:text-gray-500' }, `(${duration})`),
       ])
     },
   }),
-  // Created By Column (created_by)
   columnHelper.accessor('created_by', {
     header: 'Dibuat Oleh',
     cell: (info) => info.getValue(),
   }),
-  // Created At Column (created_at)
   columnHelper.accessor('created_at', {
     header: 'Dibuat Pada',
     cell: (info) => formatDateTime(info.getValue()),
   }),
-  // Updated By Column (updated_by)
   columnHelper.accessor('updated_by', {
     header: 'Diperbarui Oleh',
     cell: (info) => info.getValue(),
   }),
-  // Updated At Column (updated_at)
   columnHelper.accessor('updated_at', {
     header: 'Diperbarui Pada',
     cell: (info) => formatDateTime(info.getValue()),
   }),
 
-  // Action Column (Display Column with Full Buttons)
   columnHelper.display({
     id: 'actions',
     header: 'Aksi',
     cell: () =>
       h('div', { class: 'space-x-2 whitespace-nowrap' }, [
-        // Edit Button (Warning/Yellow Style)
         h(
           'button',
           {
@@ -361,7 +321,7 @@ const columns = [
           },
           'Edit',
         ),
-        // Delete Button (Danger/Red Style)
+
         h(
           'button',
           {
@@ -374,33 +334,24 @@ const columns = [
     enableSorting: false,
   }),
 ]
-
-// --- TANSTACK TABLE INITIALIZATION ---
-
 const table = useVueTable({
   data: shifts.value,
   columns,
   getCoreRowModel: getCoreRowModel(),
 
-  // Filtering Logic
   getFilteredRowModel: getFilteredRowModel(),
   onGlobalFilterChange: (updater) => {
     globalFilter.value = typeof updater === 'function' ? updater(globalFilter.value) : updater
   },
-
-  // Sorting Logic
   getSortedRowModel: getSortedRowModel(),
   onSortingChange: (updater) => {
     sorting.value = typeof updater === 'function' ? updater(sorting.value) : updater
   },
-
-  // Pagination Logic
   getPaginationRowModel: getPaginationRowModel(),
   onPaginationChange: (updater) => {
     pagination.value = typeof updater === 'function' ? updater(pagination.value) : updater
   },
 
-  // State binding
   state: {
     get sorting() {
       return sorting.value

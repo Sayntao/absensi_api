@@ -201,13 +201,17 @@ const { isExpanded, isMobileOpen, isHovered, openSubmenu } = useSidebar()
 
 const menuGroups = [
   {
-    title: 'Menu',
     items: [
       {
         icon: GridIcon,
         name: 'Dashboard',
         path: '/',
       },
+    ],
+  },
+  {
+    title: 'Menu',
+    items: [
       {
         icon: CalenderIcon,
         name: 'Absensi',
@@ -220,12 +224,18 @@ const menuGroups = [
       },
     ],
   },
+
   {
     title: 'Management',
     items: [
       {
-        name: 'Employee Management',
+        name: 'User Management',
         icon: UserCircleIcon,
+        path: '/user-management',
+      },
+      {
+        name: 'Employee Management',
+        icon: DocsIcon,
         path: '/employee-management',
       },
       {
@@ -249,7 +259,6 @@ const menuGroups = [
           { name: 'Signup', path: '/signup', pro: false },
         ],
       },
-      // ... Add other menu items here
     ],
   },
 ]

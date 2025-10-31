@@ -1,10 +1,10 @@
 <template>
   <div
-    class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
+    class="w-full lg:w-12/12 mx-auto overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
   >
     <div class="p-4 border-b border-gray-200 dark:border-gray-700">
       <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
-        <div class="w-full">
+        <div class="w-full lg:w-1/2">
           <form @submit.prevent>
             <div class="relative">
               <button class="absolute -translate-y-1/2 left-4 top-1/2 pointer-events-none">
@@ -30,19 +30,41 @@
                 placeholder="Cari Nama Karyawan, Status, atau Tanggal..."
                 class="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
               />
-              <button
-                class="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400"
-              >
-                <span> ⌘ </span>
-                <span> K </span>
-              </button>
             </div>
           </form>
         </div>
+
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <p class="text-sm text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
+            Filter Tanggal:
+          </p>
+          <div>
+            <div class="relative">
+              <flat-pickr
+                v-model="dateFilter.startDate"
+                :config="flatpickrConfig"
+                class="dark:bg-dark-900 h-11 w-40 cursor-pointer appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                placeholder="Tanggal Awal"
+              />
+            </div>
+          </div>
+          <span class="text-sm text-gray-600 dark:text-gray-400">-</span>
+          <div>
+            <div class="relative">
+              <flat-pickr
+                v-model="dateFilter.endDate"
+                :config="flatpickrConfig"
+                class="dark:bg-dark-900 h-11 w-40 cursor-pointer appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                placeholder="Tanggal Akhir"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
     <div class="max-w-full overflow-x-auto custom-scrollbar">
-      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <table class="divide-y divide-gray-200 dark:divide-gray-700 table-fixed">
         <thead>
           <tr class="border-b border-gray-200 dark:border-gray-700">
             <th
@@ -52,6 +74,7 @@
               :class="[
                 'px-5 py-3 text-left sm:px-6 bg-gray-50 dark:bg-gray-800',
                 { 'cursor-pointer select-none': header.column.getCanSort() },
+                header.column.columnDef.size ? `w-[${header.column.columnDef.size}px]` : '',
               ]"
               @click="header.column.getToggleSortingHandler()?.($event)"
             >
@@ -78,7 +101,13 @@
             <td
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
-              class="px-5 py-4 sm:px-6 whitespace-nowrap text-theme-sm text-gray-700 dark:text-gray-300"
+              :class="[
+                'px-5 py-4 sm:px-6 text-theme-sm text-gray-700 dark:text-gray-300',
+                cell.column.columnDef.size ? `w-[${cell.column.columnDef.size}px]` : '',
+                cell.column.id === 'CheckInPhoto' || cell.column.id === 'CheckOutPhoto'
+                  ? 'overflow-hidden text-ellipsis whitespace-normal break-all'
+                  : 'whitespace-nowrap',
+              ]"
             >
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
             </td>
@@ -90,11 +119,10 @@
     <div
       class="p-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-gray-200 dark:border-gray-700"
     >
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 flex-shrink-0">
         <p class="text-theme-sm text-gray-500 dark:text-gray-400">
-          Menampilkan {{ table.getPaginationRowModel().rows.length }} dari **{{
-            table.getFilteredRowModel().rows.length
-          }}** data
+          Menampilkan {{ table.getPaginationRowModel().rows.length }} dari
+          {{ table.getFilteredRowModel().rows.length }} data
         </p>
 
         <select
@@ -109,7 +137,7 @@
         </select>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-center">
         <button
           @click="table.setPageIndex(0)"
           :disabled="!table.getCanPreviousPage()"
@@ -125,7 +153,9 @@
           &lt;
         </button>
 
-        <span class="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
+        <span
+          class="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap"
+        >
           Halaman
           <strong class="font-semibold">
             {{ table.getState().pagination.pageIndex + 1 }} dari
@@ -163,24 +193,8 @@ import {
   getPaginationRowModel,
 } from '@tanstack/vue-table'
 import { ref, h, computed } from 'vue'
-
-/**
- * @typedef {Object} Attendance
- * @property {number} id - The unique ID of the attendance record.
- * @property {number} user_id - The ID referencing the employee.
- * @property {number} shift_id - The ID referencing the shift.
- * @property {string} date - The date of the attendance record (e.g., '2025-10-28').
- * @property {string | null} check_in_time - The check-in time (e.g., '08:05:00').
- * @property {string | null} check_out_time - The check-out time (e.g., '16:50:00').
- * @property {('On Time' | 'Late' | null)} check_in_status - Status of check-in time.
- * @property {('On Time' | 'Early Leave' | 'Overtime' | null)} check_out_status - Status of check-out time.
- * @property {('Present' | 'Sick' | 'Leave' | 'Absent')} attedance_status - Overall attendance status.
- * @property {string | null} check_in_image - Path/URL to the check-in verification image.
- * @property {string | null} check_out_image - Path/URL to the check-out verification image.
- * @property {string} user_name - Derived employee name (for display).
- * @property {string} shift_name - Derived shift name (for display).
- */
-
+import flatPickr from 'vue-flatpickr-component'
+import 'flatpickr/dist/flatpickr.css'
 const formatDate = (dateString) => {
   if (!dateString) return '-'
   const date = new Date(dateString)
@@ -225,19 +239,12 @@ const renderStatusBadge = (statusText) => {
   )
 }
 
-/**
- * Renders the raw photo path/URL.
- * @param {string | null} photoPath - The path/URL of the photo.
- * @returns {import('vue').VNode} The rendered VNode (Raw Link or Placeholder).
- */
 const renderRawLink = (photoPath) => {
-  // *** FUNGSI BARU UNTUK LINK MENTAH ***
   if (photoPath) {
-    // Mengembalikan teks string mentah tanpa styling
     return h(
       'span',
       {
-        class: 'text-xs text-gray-700 dark:text-gray-300 break-all', // Menggunakan break-all agar link panjang tidak merusak layout
+        class: 'text-xs text-gray-700 dark:text-gray-300 break-all',
       },
       photoPath,
     )
@@ -245,9 +252,6 @@ const renderRawLink = (photoPath) => {
   return h('span', { class: 'text-gray-400 text-xs' }, '-')
 }
 
-// --- STATE MANAGEMENT ---
-
-/** @type {Attendance[]} */
 const defaultAttendanceData = [
   {
     id: 1,
@@ -259,8 +263,8 @@ const defaultAttendanceData = [
     check_in_status: 'On Time',
     check_out_status: 'On Time',
     attedance_status: 'Present',
-    check_in_image: '/path/to/img1.jpg',
-    check_out_image: '/path/to/img2.jpg',
+    check_in_image: '/path/to/img1_very_long_url_to_test_break_all_functionality.jpg',
+    check_out_image: '/path/to/img2_very_long_url_to_test_break_all_functionality.jpg',
     user_name: 'Joko Susanto',
     shift_name: 'Shift Pagi (Reguler)',
   },
@@ -288,8 +292,8 @@ const defaultAttendanceData = [
     check_out_time: null,
     check_in_status: null,
     check_out_status: null,
-    attedance_status: 'Sick', // Sakit/Izin
-    check_in_image: null, // No photo for sick
+    attedance_status: 'Sick',
+    check_in_image: null,
     check_out_image: null,
     user_name: 'Adi Saputra',
     shift_name: 'Shift Pagi (Reguler)',
@@ -324,48 +328,100 @@ const defaultAttendanceData = [
     user_name: 'Budi Santoso',
     shift_name: 'Shift Libur (Admin)',
   },
+  {
+    id: 6,
+    user_id: 105,
+    shift_id: 1,
+    date: '2025-10-30',
+    check_in_time: '08:00:00',
+    check_out_time: '17:00:00',
+    check_in_status: 'On Time',
+    check_out_status: 'On Time',
+    attedance_status: 'Present',
+    check_in_image: '/path/to/img9.jpg',
+    check_out_image: '/path/to/img10.jpg',
+    user_name: 'Siti Rahayu',
+    shift_name: 'Shift Pagi (Reguler)',
+  },
+  {
+    id: 7,
+    user_id: 106,
+    shift_id: 2,
+    date: '2025-10-30',
+    check_in_time: '15:15:00',
+    check_out_time: '23:05:00',
+    check_in_status: 'Late',
+    check_out_status: 'On Time',
+    attedance_status: 'Present',
+    check_in_image: '/path/to/img11.jpg',
+    check_out_image: '/path/to/img12.jpg',
+    user_name: 'Faisal Akbar',
+    shift_name: 'Shift Sore (Produksi)',
+  },
 ]
 
-/** @type {import('vue').Ref<Attendance[]>} */
-const attendanceRecords = ref(defaultAttendanceData)
-
+const rawAttendanceRecords = ref(defaultAttendanceData)
 const columnHelper = createColumnHelper()
 const sorting = ref([])
 const globalFilter = ref('')
 
-// Pagination State
+const dateFilter = ref({
+  startDate: '',
+  endDate: '',
+})
+
 const pagination = ref({
   pageIndex: 0,
   pageSize: 5,
 })
 
-// --- COLUMN DEFINITION ---
+const attendanceRecords = computed(() => {
+  const start = dateFilter.value.startDate
+  const end = dateFilter.value.endDate
+  if (!start && !end) {
+    return rawAttendanceRecords.value
+  }
+  const startDate = start ? new Date(start) : null
+  const endDate = end ? new Date(end) : null
+  if (endDate) {
+    endDate.setDate(endDate.getDate() + 1)
+  }
+  return rawAttendanceRecords.value.filter((record) => {
+    const recordDate = new Date(record.date)
+    let isAfterStart = true
+    if (startDate) {
+      isAfterStart = recordDate >= startDate
+    }
+    let isBeforeEnd = true
+    if (endDate) {
+      isBeforeEnd = recordDate < endDate
+    }
+    return isAfterStart && isBeforeEnd
+  })
+})
 
-/** @type {import('@tanstack/vue-table').ColumnDef<Attendance>[]} */
 const columns = [
-  // Column ID
   columnHelper.accessor('id', {
     header: 'ID',
     cell: (info) => info.getValue(),
     size: 50,
     enableSorting: false,
   }),
-  // Employee Name Column (user_name)
   columnHelper.accessor('user_name', {
     header: 'Karyawan',
     cell: (info) => h('span', { class: 'font-medium' }, info.getValue()),
+    size: 150,
   }),
-  // Date Column (date)
   columnHelper.accessor('date', {
     header: 'Tanggal',
     cell: (info) => formatDate(info.getValue()),
+    size: 120,
   }),
-  // Shift Name Column (shift_name)
   columnHelper.accessor('shift_name', {
     header: 'Shift',
     cell: (info) => info.getValue(),
+    size: 150,
   }),
-  // Check-In Column (check_in_time & check_in_status)
   columnHelper.accessor('check_in_time', {
     id: 'CheckIn',
     header: 'Absen Masuk',
@@ -380,15 +436,15 @@ const columns = [
       ])
     },
     enableSorting: false,
+    size: 100,
   }),
-  // Check-In Photo Column
   columnHelper.accessor('check_in_image', {
     id: 'CheckInPhoto',
     header: 'Foto Absen Masuk',
-    cell: (info) => renderRawLink(info.getValue()), // *** MENGGUNAKAN FUNGSI LINK MENTAH ***
+    cell: (info) => renderRawLink(info.getValue()),
     enableSorting: false,
+    size: 140,
   }),
-  // Check-Out Column (check_out_time & check_out_status)
   columnHelper.accessor('check_out_time', {
     id: 'CheckOut',
     header: 'Absen Keluar',
@@ -403,49 +459,40 @@ const columns = [
       ])
     },
     enableSorting: false,
+    size: 100,
   }),
-  // Check-Out Photo Column
   columnHelper.accessor('check_out_image', {
     id: 'CheckOutPhoto',
     header: 'Foto Absen Keluar',
-    cell: (info) => renderRawLink(info.getValue()), // *** MENGGUNAKAN FUNGSI LINK MENTAH ***
+    cell: (info) => renderRawLink(info.getValue()),
     enableSorting: false,
+    size: 140,
   }),
-  // Overall Attendance Status (attedance_status)
   columnHelper.accessor('attedance_status', {
     id: 'OverallStatus',
     header: 'Status Kehadiran',
     cell: (info) => renderStatusBadge(info.getValue()),
     filterFn: 'equals',
+    size: 120,
   }),
 ]
 
-// --- TANSTACK TABLE INITIALIZATION ---
-
 const table = useVueTable({
-  data: attendanceRecords.value,
+  data: attendanceRecords,
   columns,
   getCoreRowModel: getCoreRowModel(),
-
-  // Filtering Logic
   getFilteredRowModel: getFilteredRowModel(),
   onGlobalFilterChange: (updater) => {
     globalFilter.value = typeof updater === 'function' ? updater(globalFilter.value) : updater
   },
-
-  // Sorting Logic
   getSortedRowModel: getSortedRowModel(),
   onSortingChange: (updater) => {
     sorting.value = typeof updater === 'function' ? updater(sorting.value) : updater
   },
-
-  // Pagination Logic
   getPaginationRowModel: getPaginationRowModel(),
   onPaginationChange: (updater) => {
     pagination.value = typeof updater === 'function' ? updater(pagination.value) : updater
   },
-
-  // State binding
   state: {
     get sorting() {
       return sorting.value
@@ -458,4 +505,13 @@ const table = useVueTable({
     },
   },
 })
+
+const date = ref(null)
+
+const flatpickrConfig = {
+  dateFormat: 'Y-m-d',
+  altInput: true,
+  altFormat: 'j F, Y',
+  wrap: true,
+}
 </script>

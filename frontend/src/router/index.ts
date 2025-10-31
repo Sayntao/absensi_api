@@ -22,14 +22,6 @@ const router = createRouter({
         title: 'Profile',
       },
     },
-    {
-      path: '/error-404',
-      name: '404 Error',
-      component: () => import('../views/Errors/FourZeroFour.vue'),
-      meta: {
-        title: '404 Error',
-      },
-    },
 
     {
       path: '/signin',
@@ -64,6 +56,14 @@ const router = createRouter({
       },
     },
     {
+      path: '/user-management',
+      name: 'User Management',
+      component: () => import('../views/Admin/UserManagement/index.vue'),
+      meta: {
+        title: 'User Management',
+      },
+    },
+    {
       path: '/shift-management',
       name: 'Shift Management',
       component: () => import('../views/HR/ShiftManagement/index.vue'),
@@ -77,6 +77,14 @@ const router = createRouter({
       component: () => import('../views/HR/ReportAllAbsen/index.vue'),
       meta: {
         title: 'All Absen',
+      },
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: '404 Error',
+      component: () => import('../views/Errors/FourZeroFour.vue'),
+      meta: {
+        title: '404 Error',
       },
     },
   ],

@@ -27,7 +27,7 @@
               <input
                 type="text"
                 v-model="globalFilter"
-                placeholder="Cari Nama, Telepon, atau Role..."
+                placeholder="Cari Nama, Telepon dan lainnya..."
                 class="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
               />
             </div>
@@ -211,7 +211,7 @@ const fetchUsers = async () => {
   loading.value = true
   error.value = null
   try {
-    const response = await api.get('user')
+    const response = await api.get('employee')
     if (Array.isArray(response.data)) {
       users.value = response.data
     } else {
@@ -247,17 +247,11 @@ const columns = [
     header: 'Nomor Telepon',
     cell: (info) => info.getValue() || '-',
   }),
-  columnHelper.accessor('role_name', {
-    id: 'Role',
-    header: 'Role',
-    cell: (info) => info.getValue(),
-    enableSorting: true,
-  }),
   columnHelper.accessor('is_active', {
     id: 'Status',
     header: 'Status',
     cell: (info) => {
-      const isActive = info.getValue() == 1
+      const isActive = info.getValue() === 1
       const text = isActive ? 'Aktif' : 'Tidak Aktif'
       const color = isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
 
