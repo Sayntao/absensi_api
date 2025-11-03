@@ -49,35 +49,24 @@ class Shift extends RestController
      */
     public function index_post()
     {
-        $name     = $this->post('name');
-        $phone    = $this->post('phone');
-        $password = $this->post('password');
+        $shift_name     = $this->post('shift_name');
+        $check_in_time    = $this->post('check_in_time');
+        $check_out_time = $this->post('check_out_time');
 
         // VALIDATION
-        if (empty($name) || empty($phone) || empty($password)) {
+        if (empty($shift_name) || empty($check_in_time) || empty($check_out_time)) {
             $this->response([
                 'status' => false,
-                'message' => 'All fields (Name, Role ID, Phone, Password) are required.'
+                'message' => 'All fields (Shift Name, Check In Time, Check Out Time) are required.'
             ], RestController::HTTP_BAD_REQUEST); // 400 Bad Request
-            return;
-        }
-        $phone_exist = $this->db->get_where('tb_user', ['phone' => $phone])->num_rows();
-
-        if ($phone_exist > 0) {
-            $this->response([
-                'status' => false,
-                'message' => 'Phone number already exists. Please use a different number.'
-            ], 409); // 409 Conflict
             return;
         }
 
         // PROCESS
         $data = [
-            'name' => $name,
-            'phone' => $phone,
-            'role_id' => 3,
-            'password' => password_hash($password, PASSWORD_BCRYPT),
-            'is_active' => 1,
+            'shift_name' => $shift_name,
+            'check_in_time' => $check_in_time,
+            'check_out_time' => $check_out_time,
             'created_at' => date('Y-m-d H:i:s'),
             'created_by' => $this->post('created_by')
         ];
@@ -106,9 +95,11 @@ class Shift extends RestController
      * Updates shift data based on ID.
      * @return void
      */
-    public function index_put()
+    public function index_put($id)
     {
-        $id = $this->put('id');
+        $shift_name     = $this->put('shift_name');
+        $check_in_time    = $this->put('check_in_time');
+        $check_out_time = $this->put('check_out_time');
 
         // VALIDATION
         if (empty($id)) {
@@ -118,6 +109,16 @@ class Shift extends RestController
             ], RestController::HTTP_BAD_REQUEST); // 400 Bad Request
             return;
         }
+
+        if (empty($shift_name) || empty($check_in_time) || empty($check_out_time)) {
+            $this->response([
+                'status' => false,
+                'message' => 'All fields (Shift Name, Check In Time, Check Out Time) are required.'
+            ], RestController::HTTP_BAD_REQUEST); // 400 Bad Request
+            return;
+        }
+
+
 
         $shift_data_exist = $this->Shift_model->get_shift_by_id($id);
 
@@ -129,16 +130,13 @@ class Shift extends RestController
             return;
         }
 
-        // PROCESS
+        // PROCESS 
         $data = [
-            'name' =>   $this->put('name'),
-            'role_id' =>   3,
-            'phone' =>   $this->put('phone'),
-            'password' =>   $this->put('password'),
-            'is_active' => $this->put('is_active'),
+            'shift_name' => $shift_name,
+            'check_in_time' => $check_in_time,
+            'check_out_time' => $check_out_time,
             'updated_at' => date('Y-m-d H:i:s'),
             'updated_by' => $this->put('updated_by')
-
         ];
         if (empty($data)) {
             $this->response([
@@ -170,10 +168,8 @@ class Shift extends RestController
      * Deletes a shift record based on ID.
      * @return void
      */
-    public function index_delete()
+    public function index_delete($id)
     {
-        $id = $this->delete('id');
-
         // VALIDATION
         if (empty($id)) {
             $this->response([

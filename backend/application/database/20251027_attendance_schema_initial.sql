@@ -49,7 +49,7 @@ CREATE TABLE tb_user (
  */
 CREATE TABLE tb_shift (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    shift_name VARCHAR(255) NOT NULL UNIQUE,
+    shift_name VARCHAR(255) NOT NULL ,
     check_in_time TIME NOT NULL,
     check_out_time TIME NOT NULL,
     created_at DATETIME,

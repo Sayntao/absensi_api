@@ -42,6 +42,7 @@
 
         <div>
           <button
+            @click="isAddShiftModal = true"
             class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300"
           >
             Tambah Shift
@@ -157,6 +158,32 @@
         </button>
       </div>
     </div>
+
+    <Modal v-if="isAddShiftModal" @close="closeAddShiftModal">
+      <template #body>
+        <AddShiftModal @close="closeAddShiftModal" @shiftAdded="handleDataUpdated" />
+      </template>
+    </Modal>
+
+    <Modal v-if="isEditShiftModal" @close="closeEditShiftModal">
+      <template #body>
+        <EditShiftModal
+          :shift-data="shiftToEdit"
+          @close="closeEditShiftModal"
+          @shiftUpdated="handleDataUpdated"
+        />
+      </template>
+    </Modal>
+
+    <Modal v-if="isDeleteShiftModal" @close="closeDeleteShiftModal">
+      <template #body>
+        <DeleteShiftModal
+          :shift-data="shiftToDelete"
+          @close="closeDeleteShiftModal"
+          @shiftDeleted="handleDataUpdated"
+        />
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -170,7 +197,21 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
 } from '@tanstack/vue-table'
-import { ref, h } from 'vue'
+import { ref, h, onMounted } from 'vue'
+import api from '@/services/api'
+// Pastikan import ini sesuai dengan lokasi file Anda
+import Modal from '../Modal.vue'
+import AddShiftModal from './AddShiftModal.vue'
+import EditShiftModal from './EditShiftModal.vue' // 💡 KOMPONEN BARU
+import DeleteShiftModal from './DeleteShiftModal.vue'
+// --- STATE MODAL ---
+const isAddShiftModal = ref(false)
+const isEditShiftModal = ref(false)
+const isDeleteShiftModal = ref(false)
+const shiftToEdit = ref(null) // Data shift yang akan diubah
+const shiftToDelete = ref(null) // Data shift yang akan dihapus
+
+// --- UTILITY FUNCTIONS ---
 
 const formatDateTime = (dateString) => {
   if (!dateString) return '-'
@@ -185,78 +226,85 @@ const formatDateTime = (dateString) => {
 }
 
 const calculateDuration = (checkIn, checkOut) => {
-  const diffMs =
-    new Date(`2000/01/01 ${checkOut}`).getTime() - new Date(`2000/01/01 ${checkIn}`).getTime()
-  if (diffMs < 0) return 'Error'
+  const checkInTime = new Date(`2000/01/01 ${checkIn}`).getTime()
+  let checkOutTime = new Date(`2000/01/01 ${checkOut}`).getTime()
+
+  if (checkOutTime < checkInTime) {
+    checkOutTime += 24 * 60 * 60 * 1000
+  }
+
+  const diffMs = checkOutTime - checkInTime
+
   const hours = Math.floor(diffMs / (1000 * 60 * 60))
   const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-  return `${hours} Jam ${minutes} Menit`
+
+  const paddedMinutes = minutes.toString().padStart(2, '0')
+
+  return `${hours} Jam ${paddedMinutes} Menit`
 }
 
-const defaultShiftData = [
-  {
-    id: 1,
-    shift_name: 'Shift Pagi (Reguler)',
-    check_in_time: '08:00:00',
-    check_out_time: '17:00:00',
-    created_at: '2025-10-25T10:00:00Z',
-    created_by: 'Admin Utama',
-    updated_at: '2025-10-25T10:00:00Z',
-    updated_by: 'Admin Utama',
-  },
-  {
-    id: 2,
-    shift_name: 'Shift Sore (Produksi)',
-    check_in_time: '14:00:00',
-    check_out_time: '23:00:00',
-    created_at: '2025-10-28T12:30:00Z',
-    created_by: 'HR Manager',
-    updated_at: '2025-10-28T12:30:00Z',
-    updated_by: 'HR Manager',
-  },
-  {
-    id: 3,
-    shift_name: 'Shift Libur (Admin)',
-    check_in_time: '09:00:00',
-    check_out_time: '15:00:00',
-    created_at: '2025-10-20T08:00:00Z',
-    created_by: 'Admin Utama',
-    updated_at: '2025-10-27T15:45:00Z',
-    updated_by: 'HR Staff Budi',
-  },
-  {
-    id: 4,
-    shift_name: 'Shift Malam (Keamanan)',
-    check_in_time: '22:00:00',
-    check_out_time: '07:00:00',
-    created_at: '2025-11-01T08:00:00Z',
-    created_by: 'Admin Utama',
-    updated_at: '2025-11-01T08:00:00Z',
-    updated_by: 'Admin Utama',
-  },
-  {
-    id: 5,
-    shift_name: 'Shift Khusus (IT)',
-    check_in_time: '10:00:00',
-    check_out_time: '19:00:00',
-    created_at: '2025-11-02T09:00:00Z',
-    created_by: 'IT Staff',
-    updated_at: '2025-11-02T09:00:00Z',
-    updated_by: 'IT Staff',
-  },
-  {
-    id: 6,
-    shift_name: 'Shift Siang (Penjualan)',
-    check_in_time: '11:00:00',
-    check_out_time: '20:00:00',
-    created_at: '2025-11-03T11:00:00Z',
-    created_by: 'Sales Manager',
-    updated_at: '2025-11-03T11:00:00Z',
-    updated_by: 'Sales Manager',
-  },
-]
+// --- CRUD DATA FUNCTIONS ---
 
-const shifts = ref(defaultShiftData)
+const shifts = ref([])
+const loading = ref(false)
+const error = ref(null)
+
+// 💡 FUNGSI UNTUK MENGAMBIL DATA (DIPANGGIL SAAT INIT DAN SETELAH POST/UPDATE/DELETE)
+const fetchShifts = async () => {
+  loading.value = true
+  error.value = null
+  try {
+    const response = await api.get('shift')
+    if (Array.isArray(response.data)) {
+      shifts.value = response.data
+    } else {
+      shifts.value = response.data.data || []
+    }
+  } catch (err) {
+    console.error('Error fetching shifts:', err)
+    // ... (Error handling)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 💡 HANDLER GLOBAL UNTUK MEREFRESH DATA
+const handleDataUpdated = () => {
+  fetchShifts() // Panggil ulang untuk mendapatkan data terbaru
+  // Modal ditutup secara otomatis oleh komponen anak (AddShiftModal/EditShiftModal)
+}
+
+// --- MODAL HANDLERS ---
+
+const closeAddShiftModal = () => {
+  isAddShiftModal.value = false
+}
+
+const closeEditShiftModal = () => {
+  isEditShiftModal.value = false
+  shiftToEdit.value = null // Reset data
+}
+
+const closeDeleteShiftModal = () => {
+  isDeleteShiftModal.value = false
+  shiftToDelete.value = null // Reset data
+}
+
+// 💡 HANDLER Aksi dari Tombol "Edit"
+const handleEdit = (shiftData) => {
+  shiftToEdit.value = shiftData
+  isEditShiftModal.value = true // Buka modal Edit
+}
+
+// 💡 HANDLER Aksi dari Tombol "Hapus"
+const handleDelete = (shiftData) => {
+  shiftToDelete.value = shiftData
+  isDeleteShiftModal.value = true // Buka modal konfirmasi Hapus
+}
+
+// --- TABLE CONFIG ---
+
+onMounted(fetchShifts)
 
 const columnHelper = createColumnHelper()
 const sorting = ref([])
@@ -266,7 +314,7 @@ const pagination = ref({
   pageIndex: 0,
   pageSize: 5,
 })
-/** @type {import('@tanstack/vue-table').ColumnDef<Shift>[]} */
+
 const columns = [
   columnHelper.accessor('id', {
     header: 'ID',
@@ -311,11 +359,13 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: 'Aksi',
-    cell: () =>
-      h('div', { class: 'space-x-2 whitespace-nowrap' }, [
+    cell: ({ row }) => {
+      const shiftData = row.original
+      return h('div', { class: 'space-x-2 whitespace-nowrap' }, [
         h(
           'button',
           {
+            onClick: () => handleEdit(shiftData),
             class:
               'inline-flex items-center justify-center rounded-lg transition px-2 py-1 text-xs font-medium bg-yellow-500 text-white shadow-theme-xs hover:bg-yellow-600',
           },
@@ -325,17 +375,22 @@ const columns = [
         h(
           'button',
           {
+            onClick: () => handleDelete(shiftData),
             class:
               'inline-flex items-center justify-center rounded-lg transition px-2 py-1 text-xs font-medium bg-red-500 text-white shadow-theme-xs hover:bg-red-600',
           },
           'Hapus',
         ),
-      ]),
+      ])
+    },
     enableSorting: false,
   }),
 ]
+
 const table = useVueTable({
-  data: shifts.value,
+  get data() {
+    return shifts.value
+  },
   columns,
   getCoreRowModel: getCoreRowModel(),
 

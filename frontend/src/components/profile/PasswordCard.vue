@@ -16,7 +16,7 @@
         </div>
 
         <button
-          @click="isProfileAddressModal = true"
+          @click="isPasswordModal = true"
           class="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 lg:inline-flex lg:w-auto"
         >
           <svg
@@ -38,14 +38,14 @@
         </button>
       </div>
     </div>
-    <Modal v-if="isProfileAddressModal" @close="isProfileAddressModal = false">
+    <Modal v-if="isPasswordModal" @close="isPasswordModal = false">
       <template #body>
         <div
           class="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11"
         >
           <!-- close btn -->
           <button
-            @click="isProfileAddressModal = false"
+            @click="isPasswordModal = false"
             class="transition-color absolute right-5 top-5 z-999 flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:bg-gray-700 dark:bg-white/[0.05] dark:text-gray-400 dark:hover:bg-white/[0.07] dark:hover:text-gray-300"
           >
             <svg
@@ -106,7 +106,7 @@
             </div>
             <div class="flex items-center gap-3 mt-6 lg:justify-end">
               <button
-                @click="isProfileAddressModal = false"
+                @click="isPasswordModal = false"
                 type="button"
                 class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
               >
@@ -131,12 +131,12 @@
 import { ref } from 'vue'
 import Modal from './Modal.vue'
 
-const isProfileAddressModal = ref(false)
+const isPasswordModal = ref(false)
 
 const saveProfile = () => {
   // Implement save profile logic here
   console.log('Profile saved')
-  isProfileInfoModal.value = false
+  isPasswordModal.value = false
 }
 </script>
 

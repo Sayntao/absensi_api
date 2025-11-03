@@ -120,12 +120,23 @@ class User extends RestController
 	public function index_put()
 	{
 		$id = $this->put('id');
-
+		$name     = $this->put('name');
+		$role_id  = $this->put('role_id');
+		$phone    = $this->put('phone');
+		$password = $this->put('password');
 		// VALIDATION
 		if (empty($id)) {
 			$this->response([
 				'status' => false,
 				'message' => 'ID is required for updating user'
+			], RestController::HTTP_BAD_REQUEST); // 400 Bad Request
+			return;
+		}
+
+		if (empty($name) || empty($role_id) || empty($phone) || empty($password)) {
+			$this->response([
+				'status' => false,
+				'message' => 'All fields (Name, Role ID, Phone, Password) are required.'
 			], RestController::HTTP_BAD_REQUEST); // 400 Bad Request
 			return;
 		}
@@ -140,16 +151,36 @@ class User extends RestController
 			return;
 		}
 
+		$phone_exist = $this->db->get_where('tb_user', ['phone' => $phone])->num_rows();
+
+		if ($phone_exist > 0) {
+			$this->response([
+				'status' => false,
+				'message' => 'Phone number already exists. Please use a different number.'
+			], 409); // 409 Conflict
+			return;
+		}
+
+		$role_exist = $this->db->get_where('tb_role', ['id' => $role_id])->num_rows();
+
+		if ($role_exist === 0) {
+			$this->response([
+				'status' => false,
+				'message' => 'Role with ID ' . $role_id . ' not found'
+			], RestController::HTTP_NOT_FOUND); // 404 Not Found
+			return;
+		}
+
 		// PROCESS
-		$data = [];
-		if ($this->put('name')) $data['name'] = $this->put('name');
-		if ($this->put('role_id')) $data['role_id'] = $this->put('role_id');
-		if ($this->put('phone')) $data['phone'] = $this->put('phone');
-		if ($this->put('password')) $data['password'] = password_hash($this->put('password'), PASSWORD_BCRYPT); // Hash password jika diubah
-
-		$data['updated_at'] = date('Y-m-d H:i:s');
-		$data['updated_by'] = $this->put('updated_by');
-
+		$data = [
+			'name' => $name,
+			'role_id' => $role_id,
+			'phone' => $phone,
+			'password' => password_hash($password, PASSWORD_BCRYPT),
+			'is_active' => 1,
+			'updated_at' => date('Y-m-d H:i:s'),
+			'updated_by' => $this->post('updated_by') // Default 1 jika tidak ada created_by
+		];
 
 		if (empty($data)) {
 			$this->response([

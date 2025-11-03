@@ -57,7 +57,7 @@ class Employee extends RestController
         if (empty($name) || empty($phone) || empty($password)) {
             $this->response([
                 'status' => false,
-                'message' => 'All fields (Name, Role ID, Phone, Password) are required.'
+                'message' => 'All fields (Name, Phone, Password) are required.'
             ], RestController::HTTP_BAD_REQUEST); // 400 Bad Request
             return;
         }
@@ -109,6 +109,9 @@ class Employee extends RestController
     public function index_put()
     {
         $id = $this->put('id');
+        $name     = $this->put('name');
+        $phone    = $this->put('phone');
+        $password = $this->put('password');
 
         // VALIDATION
         if (empty($id)) {
@@ -116,6 +119,18 @@ class Employee extends RestController
                 'status' => false,
                 'message' => 'ID is required for updating employee'
             ], RestController::HTTP_BAD_REQUEST); // 400 Bad Request
+            return;
+        }
+
+
+
+        $phone_exist = $this->db->get_where('tb_user', ['phone' => $phone])->num_rows();
+
+        if ($phone_exist > 0) {
+            $this->response([
+                'status' => false,
+                'message' => 'Phone number already exists. Please use a different number.'
+            ], 409); // 409 Conflict
             return;
         }
 
@@ -131,10 +146,10 @@ class Employee extends RestController
 
         // PROCESS
         $data = [
-            'name' =>   $this->put('name'),
+            'name' =>   $name,
             'role_id' =>   3,
-            'phone' =>   $this->put('phone'),
-            'password' =>   $this->put('password'),
+            'phone' =>   $phone,
+            'password' =>   $password,
             'is_active' => $this->put('is_active'),
             'updated_at' => date('Y-m-d H:i:s'),
             'updated_by' => $this->put('updated_by')
