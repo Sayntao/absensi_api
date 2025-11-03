@@ -30,12 +30,19 @@
                 placeholder="Cari Nama, Telepon, atau Role..."
                 class="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
               />
+              <button
+                class="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400"
+              >
+                <span> ⌘ </span>
+                <span> K </span>
+              </button>
             </div>
           </form>
         </div>
 
         <div>
           <button
+            @click="isAddUserModal = true"
             class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300"
           >
             Tambah Pengguna
@@ -166,9 +173,41 @@
         </button>
       </div>
     </div>
+
+    <Modal v-if="isAddUserModal" @close="closeAddUserModal">
+      <template #body>
+        <AddUserModal
+          @close="closeAddUserModal"
+          @userAdded="handleDataUpdated"
+          :shift-options="shiftOptions"
+          :loading-shifts="loadingShifts"
+        />
+      </template>
+    </Modal>
+
+    <Modal v-if="isEditUserModal && userToEdit" @close="closeEditUserModal">
+      <template #body>
+        <EditUserModal
+          :userData="userToEdit"
+          @close="closeEditUserModal"
+          @userUpdated="handleDataUpdated"
+          :shift-options="shiftOptions"
+          :loading-shifts="loadingShifts"
+        />
+      </template>
+    </Modal>
+
+    <Modal v-if="isDeleteUserModal && userToDelete" @close="closeDeleteUserModal">
+      <template #body>
+        <DeleteUserModal
+          :userData="userToDelete"
+          @close="closeDeleteUserModal"
+          @userDeleted="handleDataUpdated"
+        />
+      </template>
+    </Modal>
   </div>
 </template>
-
 <script setup>
 import {
   FlexRender,
@@ -182,6 +221,27 @@ import {
 
 import { ref, h, watchEffect, onMounted } from 'vue'
 import api from '@/services/api'
+
+import Modal from '../Modal.vue'
+import AddUserModal from './AddUserModal.vue'
+// 💡 IMPORT MODAL BARU
+import EditUserModal from './EditUserModal.vue'
+import DeleteUserModal from './DeleteUserModal.vue'
+
+// --- STATE MODAL ---
+const isAddUserModal = ref(false)
+// 💡 STATE MODAL BARU
+const isEditUserModal = ref(false)
+const isDeleteUserModal = ref(false)
+
+// 💡 STATE DATA UNTUK MODAL
+const userToEdit = ref(null)
+const userToDelete = ref(null)
+
+// 💡 TAMBAHAN UNTUK SHIFT
+const shiftOptions = ref([])
+const loadingShifts = ref(false)
+// --------------------
 
 const formatDateTime = (dateString) => {
   if (!dateString) return '-'
@@ -199,13 +259,27 @@ const users = ref([])
 const loading = ref(false)
 const error = ref(null)
 
-const columnHelper = createColumnHelper()
-const sorting = ref([])
-const globalFilter = ref('')
-const pagination = ref({
-  pageIndex: 0,
-  pageSize: 5,
-})
+// --- FUNGSI UTAMA ---
+
+// 💡 TAMBAHAN FUNGSI FETCH SHIFT
+const fetchShiftOptions = async () => {
+  loadingShifts.value = true
+  try {
+    // Ganti 'shift' jika endpoint API Anda berbeda
+    const response = await api.get('shift')
+    if (Array.isArray(response.data)) {
+      shiftOptions.value = response.data
+    } else {
+      shiftOptions.value = response.data.data || []
+    }
+  } catch (err) {
+    console.error('Error fetching shifts:', err)
+    // Anda mungkin ingin menampilkan error ini juga
+  } finally {
+    loadingShifts.value = false
+  }
+}
+// -----------------------------
 
 const fetchUsers = async () => {
   loading.value = true
@@ -231,9 +305,64 @@ const fetchUsers = async () => {
   }
 }
 
-onMounted(fetchUsers)
+// 💡 HANDLER GLOBAL UNTUK MEREFRESH DATA & MENUTUP MODAL
+const handleDataUpdated = () => {
+  fetchUsers() // Panggil ulang untuk mendapatkan data terbaru
+  fetchShiftOptions() // 💡 Refresh juga data shift (jika ada kemungkinan shift berubah)
+
+  // Pastikan semua modal ditutup dan state di-reset
+  isAddUserModal.value = false
+  isEditUserModal.value = false
+  isDeleteUserModal.value = false
+  userToEdit.value = null
+  userToDelete.value = null
+}
+
+// --- MODAL HANDLERS ---
+// ... (closeAddUserModal, closeEditUserModal, closeDeleteUserModal tetap sama) ...
+const closeAddUserModal = () => {
+  isAddUserModal.value = false
+}
+
+const closeEditUserModal = () => {
+  isEditUserModal.value = false
+  userToEdit.value = null
+}
+const closeDeleteUserModal = () => {
+  isDeleteUserModal.value = false
+  userToDelete.value = null
+}
+
+// --- HANDLER AKSI BARU (Edit & Delete)
+// ... (handleEdit, handleDelete tetap sama) ...
+const handleEdit = (userData) => {
+  userToEdit.value = userData
+  isEditUserModal.value = true
+}
+
+const handleDelete = (userData) => {
+  userToDelete.value = userData
+  isDeleteUserModal.value = true
+}
+
+// --- TABLE CONFIG & COLUMNS ---
+const columnHelper = createColumnHelper()
+const sorting = ref([])
+const globalFilter = ref('')
+const pagination = ref({
+  pageIndex: 0,
+  pageSize: 5,
+})
+
+// 💡 JALANKAN KEDUA FUNGSI FETCH SAAT KOMPONEN DIMUAT
+onMounted(() => {
+  fetchUsers()
+  fetchShiftOptions()
+})
+// ----------------------------------------------------
 
 const columns = [
+  // ... (Definisi kolom tetap sama) ...
   columnHelper.accessor('id', {
     header: 'ID',
     cell: (info) => info.getValue(),
@@ -284,11 +413,14 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: 'Aksi',
-    cell: ({ row }) =>
-      h('div', { class: 'space-x-2 whitespace-nowrap' }, [
+    cell: ({ row }) => {
+      // 💡 MENGGANTI ISI CELL UNTUK MEMANGGIL HANDLER BARU
+      const userData = row.original
+      return h('div', { class: 'space-x-2 whitespace-nowrap' }, [
         h(
           'button',
           {
+            onClick: () => handleEdit(userData),
             class:
               'inline-flex items-center justify-center rounded-lg transition px-2 py-1 text-xs font-medium bg-yellow-500 text-white shadow-theme-xs hover:bg-yellow-600',
           },
@@ -297,16 +429,18 @@ const columns = [
         h(
           'button',
           {
+            onClick: () => handleDelete(userData),
             class:
               'inline-flex items-center justify-center rounded-lg transition px-2 py-1 text-xs font-medium bg-red-500 text-white shadow-theme-xs hover:bg-red-600',
           },
           'Hapus',
         ),
-      ]),
+      ])
+    },
     enableSorting: false,
   }),
 ]
-
+// ... (Sisanya dari konfigurasi TanStack Table tetap sama) ...
 const table = useVueTable({
   get data() {
     return users.value
