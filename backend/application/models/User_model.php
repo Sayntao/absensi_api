@@ -21,6 +21,11 @@ class User_model extends CI_Model
     private $role_table = 'tb_role';
 
     /**
+     * @var string The name of the table to join (shifts)
+     */
+    private $shift_table = 'tb_shift';
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -108,7 +113,8 @@ class User_model extends CI_Model
     {
         $this->db->select(
             $this->table . '.*, ' .
-                $this->role_table . '.role_name'
+                $this->role_table . '.role_name, ' .
+                $this->shift_table . '.shift_name'
         );
 
         $this->db->from($this->table);
@@ -117,6 +123,11 @@ class User_model extends CI_Model
             $this->role_table,
             $this->role_table . '.id = ' . $this->table . '.role_id',
             'inner'
+        );
+        $this->db->join(
+            $this->shift_table,
+            $this->shift_table . '.id = ' . $this->table . '.shift_id',
+            'left',
         );
 
         $query = $this->db->get();
@@ -134,7 +145,9 @@ class User_model extends CI_Model
     {
         $this->db->select(
             $this->table . '.*, ' .
-                $this->role_table . '.role_name'
+                $this->role_table . '.role_name' .
+                $this->shift_table . '.shift_name'
+
         );
 
         $this->db->from($this->table);
@@ -144,6 +157,12 @@ class User_model extends CI_Model
             $this->role_table . '.id = ' . $this->table . '.role_id',
             'inner'
         );
+        $this->db->join(
+            $this->shift_table,
+            $this->shift_table . '.id = ' . $this->table . '.shift_id',
+            'left',
+        );
+
 
         $this->db->where($this->table . '.id', $id);
 

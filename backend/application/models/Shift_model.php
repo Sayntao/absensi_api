@@ -5,7 +5,6 @@
      * Class Shift_model
      * @extends CI_Model
      * Handles all database operations for the 'shifts' table, including basic CRUD 
-     * and complex queries involving the 'roles' table.
      */
     class Shift_model extends CI_Model
     {

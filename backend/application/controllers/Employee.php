@@ -36,7 +36,7 @@ class Employee extends RestController
                 $this->response($data, RestController::HTTP_OK); // 200 OK
             }
         } else {
-            $data = $this->Employee_model->get_all_employees();
+            $data = $this->Employee_model->get_employees_with_shift();
             $this->response($data, RestController::HTTP_OK); // 200 OK
         }
     }
@@ -52,9 +52,9 @@ class Employee extends RestController
         $name     = $this->post('name');
         $phone    = $this->post('phone');
         $password = $this->post('password');
-
+        $shift_id = $this->post('shift_id');
         // VALIDATION
-        if (empty($name) || empty($phone) || empty($password)) {
+        if (empty($name) || empty($phone) || empty($password) || empty($shift_id)) {
             $this->response([
                 'status' => false,
                 'message' => 'All fields (Name, Phone, Password) are required.'
@@ -76,6 +76,7 @@ class Employee extends RestController
             'name' => $name,
             'phone' => $phone,
             'role_id' => 3,
+            'shift_id' => $shift_id,
             'password' => password_hash($password, PASSWORD_BCRYPT),
             'is_active' => 1,
             'created_at' => date('Y-m-d H:i:s'),
@@ -106,13 +107,12 @@ class Employee extends RestController
      * Updates employee data based on ID.
      * @return void
      */
-    public function index_put()
+    public function index_put($id)
     {
-        $id = $this->put('id');
         $name     = $this->put('name');
         $phone    = $this->put('phone');
         $password = $this->put('password');
-
+        $shift_id = $this->put('shift_id');
         // VALIDATION
         if (empty($id)) {
             $this->response([
@@ -122,7 +122,17 @@ class Employee extends RestController
             return;
         }
 
+        if (empty($name) || empty($phone) || empty($shift_id)) {
+            $this->response([
+                'status' => false,
+                'message' => 'All fields (Name, Role ID, Phone) are required.'
+            ], RestController::HTTP_BAD_REQUEST); // 400 Bad Request
+            return;
+        }
 
+        if (!empty($id)) {
+            $this->db->where('id !=', $id);
+        }
 
         $phone_exist = $this->db->get_where('tb_user', ['phone' => $phone])->num_rows();
 
@@ -148,6 +158,7 @@ class Employee extends RestController
         $data = [
             'name' =>   $name,
             'role_id' =>   3,
+            'shift_id' => $shift_id,
             'phone' =>   $phone,
             'password' =>   $password,
             'is_active' => $this->put('is_active'),
@@ -185,10 +196,8 @@ class Employee extends RestController
      * Deletes a employee record based on ID.
      * @return void
      */
-    public function index_delete()
+    public function index_delete($id)
     {
-        $id = $this->delete('id');
-
         // VALIDATION
         if (empty($id)) {
             $this->response([

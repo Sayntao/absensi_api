@@ -54,12 +54,14 @@ class User extends RestController
 		$role_id  = $this->post('role_id');
 		$phone    = $this->post('phone');
 		$password = $this->post('password');
+		$shift_id = $this->post('shift_id');
+
 
 		// VALIDATION
-		if (empty($name) || empty($role_id) || empty($phone) || empty($password)) {
+		if (empty($name) || empty($role_id) || empty($phone) || empty($password) || empty($shift_id)) {
 			$this->response([
 				'status' => false,
-				'message' => 'All fields (Name, Role ID, Phone, Password) are required.'
+				'message' => 'All fields (Name, Role ID, Phone, Password, Shift ID) are required.'
 			], RestController::HTTP_BAD_REQUEST); // 400 Bad Request
 			return;
 		}
@@ -86,6 +88,7 @@ class User extends RestController
 		$data = [
 			'name' => $name,
 			'role_id' => $role_id,
+			'shift_id' => $shift_id,
 			'phone' => $phone,
 			'password' => password_hash($password, PASSWORD_BCRYPT),
 			'is_active' => 1,
@@ -117,13 +120,13 @@ class User extends RestController
 	 * Updates user data based on ID.
 	 * @return void
 	 */
-	public function index_put()
+	public function index_put($id)
 	{
-		$id = $this->put('id');
 		$name     = $this->put('name');
 		$role_id  = $this->put('role_id');
 		$phone    = $this->put('phone');
 		$password = $this->put('password');
+		$shift_id = $this->put('shift_id');
 		// VALIDATION
 		if (empty($id)) {
 			$this->response([
@@ -133,10 +136,10 @@ class User extends RestController
 			return;
 		}
 
-		if (empty($name) || empty($role_id) || empty($phone) || empty($password)) {
+		if (empty($name) || empty($role_id) || empty($phone) || empty($shift_id)) {
 			$this->response([
 				'status' => false,
-				'message' => 'All fields (Name, Role ID, Phone, Password) are required.'
+				'message' => 'All fields (Name, Role ID, Phone, Shift ID) are required.'
 			], RestController::HTTP_BAD_REQUEST); // 400 Bad Request
 			return;
 		}
@@ -151,16 +154,6 @@ class User extends RestController
 			return;
 		}
 
-		$phone_exist = $this->db->get_where('tb_user', ['phone' => $phone])->num_rows();
-
-		if ($phone_exist > 0) {
-			$this->response([
-				'status' => false,
-				'message' => 'Phone number already exists. Please use a different number.'
-			], 409); // 409 Conflict
-			return;
-		}
-
 		$role_exist = $this->db->get_where('tb_role', ['id' => $role_id])->num_rows();
 
 		if ($role_exist === 0) {
@@ -171,15 +164,31 @@ class User extends RestController
 			return;
 		}
 
+		if (!empty($id)) {
+			$this->db->where('id !=', $id);
+		}
+
+		$phone_exist = $this->db->get_where('tb_user', ['phone' => $phone])->num_rows();
+
+		if ($phone_exist > 0) {
+			$this->response([
+				'status' => false,
+				'message' => 'Phone number already exists. Please use a different number.'
+			], 409); // 409 Conflict
+			return;
+		}
+
+
 		// PROCESS
 		$data = [
 			'name' => $name,
 			'role_id' => $role_id,
+			'shift_id' => $shift_id,
 			'phone' => $phone,
 			'password' => password_hash($password, PASSWORD_BCRYPT),
-			'is_active' => 1,
+			'is_active' => $this->put('is_active'),
 			'updated_at' => date('Y-m-d H:i:s'),
-			'updated_by' => $this->post('updated_by') // Default 1 jika tidak ada created_by
+			'updated_by' => $this->put('updated_by') // Default 1 jika tidak ada created_by
 		];
 
 		if (empty($data)) {
@@ -212,9 +221,8 @@ class User extends RestController
 	 * Deletes a user record based on ID.
 	 * @return void
 	 */
-	public function index_delete()
+	public function index_delete($id)
 	{
-		$id = $this->delete('id');
 
 		// VALIDATION
 		if (empty($id)) {

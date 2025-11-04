@@ -16,36 +16,9 @@ CREATE TABLE tb_role (
     PRIMARY KEY (id)
 );
 
-
--- Table: tb_user
-/*
- * Stores user credentials and profile details.
- * Linked via Foreign Key (FK) to tb_role.
- * Includes self-referencing audit columns (created_by, updated_by).
- */
-CREATE TABLE tb_user (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    role_id BIGINT NOT NULL,
-    name VARCHAR(225) NOT NULL,
-    phone VARCHAR(20) UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    is_active TINYINT(1) DEFAULT 1,
-    last_login DATETIME,
-    created_at DATETIME,
-    created_by BIGINT,
-    updated_at DATETIME,
-    updated_by BIGINT,
-    PRIMARY KEY (id),
-    FOREIGN KEY (role_id) REFERENCES tb_role(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES tb_user(id) ON DELETE SET NULL ON UPDATE CASCADE,
-    FOREIGN KEY (updated_by) REFERENCES tb_user(id) ON DELETE SET NULL ON UPDATE CASCADE
-);
-
-
 -- Table: tb_shift
 /*
  * Stores the defined standard work schedules/shifts.
- * Includes audit columns linked to tb_user.
  */
 CREATE TABLE tb_shift (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -53,12 +26,33 @@ CREATE TABLE tb_shift (
     check_in_time TIME NOT NULL,
     check_out_time TIME NOT NULL,
     created_at DATETIME,
-    created_by BIGINT,
+    created_by VARCHAR(255),
     updated_at DATETIME,
-    updated_by BIGINT,
+    updated_by VARCHAR(255),
+    PRIMARY KEY (id)
+);
+
+-- Table: tb_user
+/*
+ * Stores user credentials and profile details.
+ * Linked via Foreign Key (FK) to tb_role and tb_shift.
+ */
+CREATE TABLE tb_user (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    role_id BIGINT NOT NULL,
+    shift_id BIGINT, -- Added foreign key column for tb_shift
+    name VARCHAR(225) NOT NULL,
+    phone VARCHAR(20) UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    is_active TINYINT(1) DEFAULT 1,
+    last_login DATETIME,
+    created_at DATETIME,
+    created_by VARCHAR(255),
+    updated_at DATETIME,
+    updated_by VARCHAR(255),
     PRIMARY KEY (id),
-    FOREIGN KEY (created_by) REFERENCES tb_user(id) ON DELETE SET NULL ON UPDATE CASCADE,
-    FOREIGN KEY (updated_by) REFERENCES tb_user(id) ON DELETE SET NULL ON UPDATE CASCADE
+    FOREIGN KEY (role_id) REFERENCES tb_role(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (shift_id) REFERENCES tb_shift(id) ON DELETE SET NULL ON UPDATE CASCADE -- Added foreign key constraint
 );
 
 

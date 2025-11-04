@@ -14,6 +14,12 @@ class Employee_model extends CI_Model
      * @var string The main table name (users)
      */
     private $table = 'tb_user';
+
+    /**
+     * @var string The name of the table to join (shifts)
+     */
+    private $shift_table = 'tb_shift';
+
     /**
      * Constructor
      */
@@ -90,5 +96,65 @@ class Employee_model extends CI_Model
         $this->db->where('role_id', 3);
         $this->db->where('id', $id);
         return $this->db->delete($this->table);
+    }
+
+
+    // --------------------------------------------------------------------
+    // JOIN QUERIES
+    // --------------------------------------------------------------------
+
+    /**
+     * Retrieves all employees along with their associated shift name.
+     *
+     * @return array|bool Returns an array of joined objects, or FALSE on failure.
+     */
+    public function get_employees_with_shift()
+    {
+        $this->db->select(
+            $this->table . '.*, ' .
+                $this->shift_table . '.shift_name'
+        );
+
+        $this->db->from($this->table);
+
+        $this->db->join(
+            $this->shift_table,
+            $this->shift_table . '.id = ' . $this->table . '.shift_id',
+            'left',
+        );
+
+        $this->db->where('role_id', 3);
+        $query = $this->db->get();
+
+        return $query->result();
+    }
+
+    /**
+     * Retrieves a single employee record by ID along with their associated shift name (JOIN).
+     *
+     * @param int $id The employee's primary ID.
+     * @return object|bool Returns a single joined object, or FALSE if not found.
+     */
+    public function get_employee_with_join_by_id($id)
+    {
+        $this->db->select(
+            $this->table . '.*, ' .
+                $this->shift_table . '.shift_name'
+        );
+
+        $this->db->from($this->table);
+
+        $this->db->join(
+            $this->shift_table,
+            $this->shift_table . '.id = ' . $this->table . '.shift_id',
+            'left',
+        );
+
+        $this->db->where('role_id', 3);
+        $this->db->where($this->table . '.id', $id);
+
+        $query = $this->db->get();
+
+        return $query->row();
     }
 }
