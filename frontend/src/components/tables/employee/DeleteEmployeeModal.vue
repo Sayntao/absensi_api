@@ -38,9 +38,9 @@
           />
         </svg>
       </div>
-      <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Hapus Pengguna</h3>
+      <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Hapus Karyawan</h3>
       <p class="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
-        Anda yakin ingin menghapus pengguna <b>{{ props.userData.name }}</b
+        Anda yakin ingin menghapus karyawan <b>{{ props.employeeData.name }}</b
         >? Tindakan ini tidak dapat dibatalkan.
       </p>
     </div>
@@ -64,13 +64,13 @@
       </button>
 
       <button
-        @click="deleteUser"
+        @click="deleteEmployee"
         type="button"
         :disabled="loading"
         class="flex w-full justify-center rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 sm:w-auto disabled:bg-red-400 disabled:cursor-not-allowed"
       >
         <span v-if="loading">Menghapus...</span>
-        <span v-else>Ya, Hapus Pengguna</span>
+        <span v-else>Ya, Hapus Karyawan</span>
       </button>
     </div>
   </div>
@@ -81,8 +81,8 @@ import api from '@/services/api'
 import { ref } from 'vue'
 
 const props = defineProps({
-  // Menerima data pengguna yang akan dihapus
-  userData: {
+  // Menerima data karyawan yang akan dihapus
+  employeeData: {
     type: Object,
     required: true,
   },
@@ -90,24 +90,24 @@ const props = defineProps({
 
 const loading = ref(false)
 const error = ref(null)
-const emit = defineEmits(['close', 'userDeleted'])
+const emit = defineEmits(['close', 'employeeDeleted'])
 
 // --- DELETE FUNCTION ---
-const deleteUser = async () => {
+const deleteEmployee = async () => {
   loading.value = true
   error.value = null
 
-  const userId = props.userData.id
+  const employeeId = props.employeeData.id
 
   try {
     // Menggunakan API DELETE
-    await api.delete(`user/${userId}`)
+    await api.delete(`employee/${employeeId}`)
 
     // Sukses: Beri tahu komponen induk bahwa data sudah dihapus
-    emit('userDeleted')
+    emit('employeeDeleted')
     emit('close')
   } catch (err) {
-    console.error(`Error saat menghapus User ID ${userId}:`, err)
+    console.error(`Error saat menghapus Employee ID ${employeeId}:`, err)
     if (err.response) {
       error.value = `Gagal menghapus. Server Error (${err.response.status}): ${err.response.data.message || 'Silakan coba lagi.'}`
     } else {

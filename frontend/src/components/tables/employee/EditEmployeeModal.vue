@@ -24,16 +24,19 @@
     </button>
 
     <div class="px-2 pr-14">
-      <h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-        Tambah Pengguna Baru
-      </h4>
+      <h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Edit Pengguna</h4>
 
       <p class="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-        Isi detail akun pengguna yang baru.
+        Perbarui detail akun karyawan.
       </p>
     </div>
 
-    <VeeForm :validation-schema="schema" @submit="onSubmit" class="flex flex-col">
+    <VeeForm
+      :validation-schema="schema"
+      @submit="onSubmit"
+      :initial-values="initialValues"
+      class="flex flex-col"
+    >
       <div class="px-2 overflow-y-auto custom-scrollbar">
         <div class="col-span-2">
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
@@ -79,13 +82,13 @@
 
         <div class="col-span-2 mt-5">
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-            Password
+            Password (Kosongkan jika tidak ingin diubah)
           </label>
           <VeeField name="password" validate-on-input v-slot="{ field, meta, errorMessage }">
             <input
               v-bind="field"
               type="password"
-              placeholder="Masukkan password"
+              placeholder="Masukkan password baru (opsional)"
               :class="{
                 'border-error-300 focus:border-error-300 focus:ring-3 focus:ring-error-500/10 dark:border-error-700 dark:focus:border-error-800 pr-10':
                   !meta.valid && meta.dirty,
@@ -102,19 +105,18 @@
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Role (Hak Akses)
           </label>
-          <VeeField name="role_id" v-slot="{ field, meta, errorMessage }">
+          <VeeField name="role_id" validate-on-input v-slot="{ field, meta, errorMessage }">
             <div class="relative z-20 bg-transparent">
               <select
                 v-bind="field"
-                :disabled="props.loadingRoles || loading"
+                :disabled="loading"
                 :class="{
-                  // Gunakan meta.validated untuk menampilkan error setelah submit
                   'border-error-300 focus:border-error-300 focus:ring-3 focus:ring-error-500/10 dark:border-error-700 dark:focus:border-error-800 pr-11':
-                    !meta.valid && meta.validated,
+                    !meta.valid && meta.dirty,
                   'dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800': true,
                 }"
               >
-                <option :value="null" disabled selected>--- Pilih Role ---</option>
+                <option :value="null" disabled>--- Pilih Role ---</option>
                 <option value="1">Administrator</option>
                 <option value="2">HR</option>
                 <option value="3">Karyawan</option>
@@ -140,7 +142,7 @@
                 </svg>
               </span>
             </div>
-            <p v-if="!meta.valid && meta.validated" class="mt-1.5 text-theme-xs text-error-500">
+            <p v-if="!meta.valid && meta.dirty" class="mt-1.5 text-theme-xs text-error-500">
               {{ errorMessage }}
             </p>
           </VeeField>
@@ -150,19 +152,18 @@
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Shift Kerja
           </label>
-          <VeeField name="shift_id" v-slot="{ field, meta, errorMessage }">
+          <VeeField name="shift_id" validate-on-input v-slot="{ field, meta, errorMessage }">
             <div class="relative z-20 bg-transparent">
               <select
                 v-bind="field"
                 :disabled="props.loadingShifts || loading"
                 :class="{
-                  // Gunakan meta.validated untuk menampilkan error setelah submit
                   'border-error-300 focus:border-error-300 focus:ring-3 focus:ring-error-500/10 dark:border-error-700 dark:focus:border-error-800 pr-11':
-                    !meta.valid && meta.validated,
+                    !meta.valid && meta.dirty,
                   'dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800': true,
                 }"
               >
-                <option :value="null" disabled selected>
+                <option :value="null" disabled>
                   {{ props.loadingShifts ? 'Memuat Shift...' : '--- Pilih Shift ---' }}
                 </option>
                 <option v-for="shift in props.shiftOptions" :key="shift.id" :value="shift.id">
@@ -191,12 +192,54 @@
                 </svg>
               </span>
             </div>
-            <p v-if="!meta.valid && meta.validated" class="mt-1.5 text-theme-xs text-error-500">
+            <p v-if="!meta.valid && meta.dirty" class="mt-1.5 text-theme-xs text-error-500">
               {{ errorMessage }}
             </p>
           </VeeField>
         </div>
 
+        <div class="col-span-2 mt-6">
+          <label
+            for="activeCheckbox"
+            class="flex items-center text-sm font-medium text-gray-700 cursor-pointer select-none dark:text-gray-400"
+          >
+            <div class="relative">
+              <input
+                type="checkbox"
+                id="activeCheckbox"
+                v-model="is_active_check_box"
+                class="sr-only"
+              />
+              <div
+                :class="
+                  is_active_check_box
+                    ? 'border-brand-500 bg-brand-500'
+                    : 'bg-transparent border-gray-300 dark:border-gray-700'
+                "
+                class="mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] hover:border-brand-500 dark:hover:border-brand-500"
+              >
+                <span :class="is_active_check_box ? '' : 'opacity-0'">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M11.6666 3.5L5.24992 9.91667L2.33325 7"
+                      stroke="white"
+                      stroke-width="1.94437"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+              </div>
+            </div>
+            Status {{ is_active_check_box ? 'Aktif' : 'Tidak Aktif' }}
+          </label>
+        </div>
         <div
           v-if="error"
           class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg dark:bg-red-900/20 dark:border-red-600 dark:text-red-400"
@@ -221,20 +264,24 @@
           :disabled="loading"
           class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto disabled:bg-brand-300 disabled:cursor-not-allowed"
         >
-          {{ loading ? 'Menyimpan...' : 'Tambah Pengguna' }}
+          {{ loading ? 'Memperbarui...' : 'Simpan Perubahan' }}
         </button>
       </div>
     </VeeForm>
   </div>
 </template>
-
 <script setup>
 import { Form as VeeForm, Field as VeeField } from 'vee-validate'
 import * as yup from 'yup'
 import api from '@/services/api'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
+  // Data karyawan yang akan diedit (wajib diisi saat modal dibuka)
+  employeeData: {
+    type: Object,
+    required: true,
+  },
   shiftOptions: {
     type: Array,
     default: () => [],
@@ -243,20 +290,36 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  // Asumsi ada loadingRoles jika Anda menggunakan Role Option dari API
-  loadingRoles: {
-    type: Boolean,
-    default: false,
-  },
 })
 
 const loading = ref(false)
 const error = ref(null)
-const emit = defineEmits(['close', 'userAdded'])
+const emit = defineEmits(['close', 'employeeUpdated'])
+
+// 🆕 REF untuk Status Aktif (is_active)
+// Menggunakan nama yang Anda minta: is_active_check_box
+// Mengkonversi nilai 1/0/boolean dari employeeData menjadi boolean untuk v-model
+const is_active_check_box = ref(
+  props.employeeData.is_active == 1 || props.employeeData.is_active === true,
+)
+
+// Fungsi helper untuk menginisialisasi ID ke String atau null
+const getInitialId = (id) => (id ? String(id) : null)
+
+// --- COMPUTED INITIAL VALUES ---
+const initialValues = computed(() => {
+  const data = props.employeeData || {}
+
+  return {
+    name: data.name || '',
+    phone: data.phone || '',
+    password: '', // Password selalu dikosongkan saat modal update dibuka
+    role_id: getInitialId(data.role_id),
+    shift_id: getInitialId(data.shift_id),
+  }
+})
 
 // --- VALIDATION SCHEMA ---
-// Tidak ada perubahan di schema, karena yup.number().required() sudah benar
-// untuk memvalidasi bahwa null (nilai default select) tidak diizinkan.
 const schema = yup.object({
   name: yup.string().required('Nama Lengkap wajib diisi.'),
   phone: yup
@@ -265,44 +328,50 @@ const schema = yup.object({
     .matches(/^[0-9]+$/, 'Nomor Telepon harus berupa angka.')
     .min(10, 'Nomor Telepon minimal 10 digit.')
     .max(14, 'Nomor Telepon maksimal 14 digit.'),
-  password: yup.string().required('Password wajib diisi.').min(6, 'Password minimal 6 karakter.'),
-  // role_id dan shift_id akan gagal jika value-nya 'null' (default option)
+  password: yup
+    .string()
+    .transform((value, originalValue) => (originalValue === '' ? undefined : value))
+    .min(6, 'Password minimal 6 karakter.')
+    .notRequired(),
   role_id: yup.number().required('Role wajib dipilih.').typeError('Role wajib dipilih.'),
   shift_id: yup.number().required('Shift wajib dipilih.').typeError('Shift wajib dipilih.'),
 })
 
 // --- SUBMIT FUNCTION ---
-const postUser = async (formData, resetForm) => {
+const updateEmployee = async (formData) => {
   loading.value = true
   error.value = null
 
-  // Pastikan role_id dan shift_id dikirim sebagai angka
+  // Payload: Ambil data dari VeeForm
   const payload = {
     ...formData,
+    // Pastikan konversi ke Number di sini
     role_id: Number(formData.role_id),
     shift_id: Number(formData.shift_id),
+    // 🆕 Tambahkan nilai is_active_check_box yang dikonversi ke integer (1 atau 0)
+    is_active: is_active_check_box.value ? 1 : 0,
   }
 
-  try {
-    await api.post('user', payload)
+  // Hapus password dari payload jika karyawan tidak mengisinya
+  if (!payload.password) {
+    delete payload.password
+  }
 
-    emit('userAdded')
-    resetForm()
+  const employeeId = props.employeeData.id
+
+  try {
+    await api.put(`employee/${employeeId}`, payload)
+
+    // Sukses
+    emit('employeeUpdated')
     emit('close')
   } catch (err) {
-    console.error('Error saat menambah User:', err)
+    console.error('Error saat memperbarui Employee:', err)
     if (err.response) {
-      // Penanganan error spesifik dari validasi API (misalnya duplikasi telepon)
-      if (err.response.data && err.response.data.errors) {
-        let apiError = 'Periksa kembali input Anda.'
-        if (err.response.data.errors.phone) {
-          apiError = `Nomor telepon sudah digunakan: ${err.response.data.errors.phone[0]}`
-        } else if (err.response.data.message) {
-          apiError = err.response.data.message
-        }
-        error.value = `Gagal menyimpan data. Server Error (${err.response.status}): ${apiError}`
+      if (err.response.data && err.response.data.errors && err.response.data.errors.phone) {
+        error.value = `Nomor telepon sudah digunakan: ${err.response.data.errors.phone[0]}`
       } else {
-        error.value = `Gagal menyimpan data. Server Error (${err.response.status}): ${err.response.data.message || 'Silakan coba lagi.'}`
+        error.value = `Gagal menyimpan data. Server Error (${err.response.status}): ${err.response.data.message || 'Periksa kembali input Anda.'}`
       }
     } else {
       error.value = 'Gagal memproses request. Periksa koneksi jaringan.'
@@ -312,7 +381,7 @@ const postUser = async (formData, resetForm) => {
   }
 }
 
-const onSubmit = (values, { resetForm }) => {
-  postUser(values, resetForm)
+const onSubmit = (values) => {
+  updateEmployee(values)
 }
 </script>

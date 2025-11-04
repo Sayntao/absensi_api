@@ -27,36 +27,46 @@
               <input
                 type="text"
                 v-model="globalFilter"
-                placeholder="Cari Nama, Telepon dan lainnya..."
+                placeholder="Cari Nama, Telepon, atau Role..."
                 class="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
               />
+              <button
+                class="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400"
+              >
+                <span> ⌘ </span>
+                <span> K </span>
+              </button>
             </div>
           </form>
         </div>
 
         <div>
           <button
+            @click="isAddEmployeeModal = true"
             class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300"
           >
-            Tambah Pengguna
+            Tambah Karyawan
           </button>
         </div>
       </div>
     </div>
 
     <div v-if="loading" class="p-6 text-center text-gray-500 dark:text-gray-400">
-      Memuat data pengguna...
+      Memuat data karyawan...
     </div>
     <div v-else-if="error" class="p-6 text-center text-red-600 dark:text-red-400">
       <p class="font-bold">Gagal memuat data!</p>
       <p class="text-sm">({{ error }})</p>
     </div>
-    <div v-else-if="users.length === 0" class="p-6 text-center text-gray-500 dark:text-gray-400">
-      Tidak ada data pengguna yang ditemukan.
+    <div
+      v-else-if="employees.length === 0"
+      class="p-6 text-center text-gray-500 dark:text-gray-400"
+    >
+      Tidak ada data karyawan yang ditemukan.
     </div>
 
     <div
-      v-show="!loading && !error && users.length > 0"
+      v-show="!loading && !error && employees.length > 0"
       class="max-w-full overflow-x-auto custom-scrollbar"
     >
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -105,7 +115,7 @@
     </div>
 
     <div
-      v-show="!loading && !error && users.length > 0"
+      v-show="!loading && !error && employees.length > 0"
       class="p-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-gray-200 dark:border-gray-700"
     >
       <div class="flex items-center gap-4">
@@ -166,9 +176,41 @@
         </button>
       </div>
     </div>
+
+    <Modal v-if="isAddEmployeeModal" @close="closeAddEmployeeModal">
+      <template #body>
+        <AddEmployeeModal
+          @close="closeAddEmployeeModal"
+          @employeeAdded="handleDataUpdated"
+          :shift-options="shiftOptions"
+          :loading-shifts="loadingShifts"
+        />
+      </template>
+    </Modal>
+
+    <Modal v-if="isEditEmployeeModal && employeeToEdit" @close="closeEditEmployeeModal">
+      <template #body>
+        <EditEmployeeModal
+          :employeeData="employeeToEdit"
+          @close="closeEditEmployeeModal"
+          @employeeUpdated="handleDataUpdated"
+          :shift-options="shiftOptions"
+          :loading-shifts="loadingShifts"
+        />
+      </template>
+    </Modal>
+
+    <Modal v-if="isDeleteEmployeeModal && employeeToDelete" @close="closeDeleteEmployeeModal">
+      <template #body>
+        <DeleteEmployeeModal
+          :employeeData="employeeToDelete"
+          @close="closeDeleteEmployeeModal"
+          @employeeDeleted="handleDataUpdated"
+        />
+      </template>
+    </Modal>
   </div>
 </template>
-
 <script setup>
 import {
   FlexRender,
@@ -183,6 +225,27 @@ import {
 import { ref, h, watchEffect, onMounted } from 'vue'
 import api from '@/services/api'
 
+import Modal from '../Modal.vue'
+import AddEmployeeModal from './AddEmployeeModal.vue'
+// 💡 IMPORT MODAL BARU
+import EditEmployeeModal from './EditEmployeeModal.vue'
+import DeleteEmployeeModal from './DeleteEmployeeModal.vue'
+
+// --- STATE MODAL ---
+const isAddEmployeeModal = ref(false)
+// 💡 STATE MODAL BARU
+const isEditEmployeeModal = ref(false)
+const isDeleteEmployeeModal = ref(false)
+
+// 💡 STATE DATA UNTUK MODAL
+const employeeToEdit = ref(null)
+const employeeToDelete = ref(null)
+
+// 💡 TAMBAHAN UNTUK SHIFT
+const shiftOptions = ref([])
+const loadingShifts = ref(false)
+// --------------------
+
 const formatDateTime = (dateString) => {
   if (!dateString) return '-'
   const date = new Date(dateString)
@@ -195,30 +258,44 @@ const formatDateTime = (dateString) => {
   }).format(date)
 }
 
-const users = ref([])
+const employees = ref([])
 const loading = ref(false)
 const error = ref(null)
 
-const columnHelper = createColumnHelper()
-const sorting = ref([])
-const globalFilter = ref('')
-const pagination = ref({
-  pageIndex: 0,
-  pageSize: 5,
-})
+// --- FUNGSI UTAMA ---
 
-const fetchUsers = async () => {
+// 💡 TAMBAHAN FUNGSI FETCH SHIFT
+const fetchShiftOptions = async () => {
+  loadingShifts.value = true
+  try {
+    // Ganti 'shift' jika endpoint API Anda berbeda
+    const response = await api.get('shift')
+    if (Array.isArray(response.data)) {
+      shiftOptions.value = response.data
+    } else {
+      shiftOptions.value = response.data.data || []
+    }
+  } catch (err) {
+    console.error('Error fetching shifts:', err)
+    // Anda mungkin ingin menampilkan error ini juga
+  } finally {
+    loadingShifts.value = false
+  }
+}
+// -----------------------------
+
+const fetchEmployees = async () => {
   loading.value = true
   error.value = null
   try {
     const response = await api.get('employee')
     if (Array.isArray(response.data)) {
-      users.value = response.data
+      employees.value = response.data
     } else {
-      users.value = response.data.data || []
+      employees.value = response.data.data || []
     }
   } catch (err) {
-    console.error('Error fetching users:', err)
+    console.error('Error fetching employees:', err)
     if (err.response) {
       error.value = `Server Error (${err.response.status}): ${err.response.statusText}`
     } else if (err.request) {
@@ -231,27 +308,88 @@ const fetchUsers = async () => {
   }
 }
 
-onMounted(fetchUsers)
+// 💡 HANDLER GLOBAL UNTUK MEREFRESH DATA & MENUTUP MODAL
+const handleDataUpdated = () => {
+  fetchEmployees() // Panggil ulang untuk mendapatkan data terbaru
+  fetchShiftOptions() // 💡 Refresh juga data shift (jika ada kemungkinan shift berubah)
+
+  // Pastikan semua modal ditutup dan state di-reset
+  isAddEmployeeModal.value = false
+  isEditEmployeeModal.value = false
+  isDeleteEmployeeModal.value = false
+  employeeToEdit.value = null
+  employeeToDelete.value = null
+}
+
+// --- MODAL HANDLERS ---
+// ... (closeAddEmployeeModal, closeEditEmployeeModal, closeDeleteEmployeeModal tetap sama) ...
+const closeAddEmployeeModal = () => {
+  isAddEmployeeModal.value = false
+}
+
+const closeEditEmployeeModal = () => {
+  isEditEmployeeModal.value = false
+  employeeToEdit.value = null
+}
+const closeDeleteEmployeeModal = () => {
+  isDeleteEmployeeModal.value = false
+  employeeToDelete.value = null
+}
+
+// --- HANDLER AKSI BARU (Edit & Delete)
+// ... (handleEdit, handleDelete tetap sama) ...
+const handleEdit = (employeeData) => {
+  employeeToEdit.value = employeeData
+  isEditEmployeeModal.value = true
+}
+
+const handleDelete = (employeeData) => {
+  employeeToDelete.value = employeeData
+  isDeleteEmployeeModal.value = true
+}
+
+// --- TABLE CONFIG & COLUMNS ---
+const columnHelper = createColumnHelper()
+const sorting = ref([])
+const globalFilter = ref('')
+const pagination = ref({
+  pageIndex: 0,
+  pageSize: 5,
+})
+
+// 💡 JALANKAN KEDUA FUNGSI FETCH SAAT KOMPONEN DIMUAT
+onMounted(() => {
+  fetchEmployees()
+  fetchShiftOptions()
+})
+// ----------------------------------------------------
 
 const columns = [
+  // ... (Definisi kolom tetap sama) ...
   columnHelper.accessor('id', {
     header: 'ID',
     cell: (info) => info.getValue(),
     size: 50,
   }),
   columnHelper.accessor('name', {
-    header: 'Nama Pengguna',
+    header: 'Nama Karyawan',
     cell: (info) => h('span', { class: 'font-medium' }, info.getValue()),
   }),
   columnHelper.accessor('phone', {
     header: 'Nomor Telepon',
     cell: (info) => info.getValue() || '-',
   }),
+  columnHelper.accessor('shift_name', {
+    id: 'Shift',
+    header: 'Shift',
+    cell: (info) => info.getValue(),
+    enableSorting: true,
+  }),
   columnHelper.accessor('is_active', {
     id: 'Status',
     header: 'Status',
     cell: (info) => {
-      const isActive = info.getValue() === 1
+      const isActive = info.getValue() == 1
       const text = isActive ? 'Aktif' : 'Tidak Aktif'
       const color = isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
 
@@ -278,11 +416,14 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: 'Aksi',
-    cell: ({ row }) =>
-      h('div', { class: 'space-x-2 whitespace-nowrap' }, [
+    cell: ({ row }) => {
+      // 💡 MENGGANTI ISI CELL UNTUK MEMANGGIL HANDLER BARU
+      const employeeData = row.original
+      return h('div', { class: 'space-x-2 whitespace-nowrap' }, [
         h(
           'button',
           {
+            onClick: () => handleEdit(employeeData),
             class:
               'inline-flex items-center justify-center rounded-lg transition px-2 py-1 text-xs font-medium bg-yellow-500 text-white shadow-theme-xs hover:bg-yellow-600',
           },
@@ -291,19 +432,21 @@ const columns = [
         h(
           'button',
           {
+            onClick: () => handleDelete(employeeData),
             class:
               'inline-flex items-center justify-center rounded-lg transition px-2 py-1 text-xs font-medium bg-red-500 text-white shadow-theme-xs hover:bg-red-600',
           },
           'Hapus',
         ),
-      ]),
+      ])
+    },
     enableSorting: false,
   }),
 ]
-
+// ... (Sisanya dari konfigurasi TanStack Table tetap sama) ...
 const table = useVueTable({
   get data() {
-    return users.value
+    return employees.value
   },
   columns,
   getCoreRowModel: getCoreRowModel(),
@@ -339,7 +482,7 @@ const table = useVueTable({
 watchEffect(() => {
   table.setOptions((prev) => ({
     ...prev,
-    data: users.value,
+    data: employees.value,
   }))
 })
 </script>

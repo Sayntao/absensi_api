@@ -382,6 +382,12 @@ const columns = [
     cell: (info) => info.getValue(),
     enableSorting: true,
   }),
+  columnHelper.accessor('shift_name', {
+    id: 'Shift',
+    header: 'Shift',
+    cell: (info) => info.getValue(),
+    enableSorting: true,
+  }),
   columnHelper.accessor('is_active', {
     id: 'Status',
     header: 'Status',

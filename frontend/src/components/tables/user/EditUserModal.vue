@@ -198,6 +198,48 @@
           </VeeField>
         </div>
 
+        <div class="col-span-2 mt-6">
+          <label
+            for="activeCheckbox"
+            class="flex items-center text-sm font-medium text-gray-700 cursor-pointer select-none dark:text-gray-400"
+          >
+            <div class="relative">
+              <input
+                type="checkbox"
+                id="activeCheckbox"
+                v-model="is_active_check_box"
+                class="sr-only"
+              />
+              <div
+                :class="
+                  is_active_check_box
+                    ? 'border-brand-500 bg-brand-500'
+                    : 'bg-transparent border-gray-300 dark:border-gray-700'
+                "
+                class="mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] hover:border-brand-500 dark:hover:border-brand-500"
+              >
+                <span :class="is_active_check_box ? '' : 'opacity-0'">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M11.6666 3.5L5.24992 9.91667L2.33325 7"
+                      stroke="white"
+                      stroke-width="1.94437"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+              </div>
+            </div>
+            Status {{ is_active_check_box ? 'Aktif' : 'Tidak Aktif' }}
+          </label>
+        </div>
         <div
           v-if="error"
           class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg dark:bg-red-900/20 dark:border-red-600 dark:text-red-400"
@@ -228,7 +270,6 @@
     </VeeForm>
   </div>
 </template>
-
 <script setup>
 import { Form as VeeForm, Field as VeeField } from 'vee-validate'
 import * as yup from 'yup'
@@ -255,29 +296,41 @@ const loading = ref(false)
 const error = ref(null)
 const emit = defineEmits(['close', 'userUpdated'])
 
+// 🆕 REF untuk Status Aktif (is_active)
+// Menggunakan nama yang Anda minta: is_active_check_box
+// Mengkonversi nilai 1/0/boolean dari userData menjadi boolean untuk v-model
+const is_active_check_box = ref(props.userData.is_active == 1 || props.userData.is_active === true)
+
+// Fungsi helper untuk menginisialisasi ID ke String atau null
+const getInitialId = (id) => (id ? String(id) : null)
+
 // --- COMPUTED INITIAL VALUES ---
-// MEMPERBAIKI BUG: Menambahkan pengecekan null/undefined
 const initialValues = computed(() => {
-  // Gunakan data kosong sebagai fallback jika props.userData undefined
   const data = props.userData || {}
 
   return {
-    // Akses properti dengan fallback string kosong
     name: data.name || '',
     phone: data.phone || '',
     password: '', // Password selalu dikosongkan saat modal update dibuka
-    // Pastikan ID dikonversi ke String dan menggunakan fallback 0 jika data.id undefined
-    role_id: String(data.role_id || 0),
-    shift_id: String(data.shift_id || 0),
+    role_id: getInitialId(data.role_id),
+    shift_id: getInitialId(data.shift_id),
   }
 })
 
 // --- VALIDATION SCHEMA ---
 const schema = yup.object({
   name: yup.string().required('Nama Lengkap wajib diisi.'),
-  phone: yup.string().required('Nomor Telpon wajib diisi.'),
-  // Password opsional: min 6 karakter hanya jika diisi (bukan null/empty)
-  password: yup.string().min(6, 'Password minimal 6 karakter.').nullable(),
+  phone: yup
+    .string()
+    .required('Nomor Telpon wajib diisi.')
+    .matches(/^[0-9]+$/, 'Nomor Telepon harus berupa angka.')
+    .min(10, 'Nomor Telepon minimal 10 digit.')
+    .max(14, 'Nomor Telepon maksimal 14 digit.'),
+  password: yup
+    .string()
+    .transform((value, originalValue) => (originalValue === '' ? undefined : value))
+    .min(6, 'Password minimal 6 karakter.')
+    .notRequired(),
   role_id: yup.number().required('Role wajib dipilih.').typeError('Role wajib dipilih.'),
   shift_id: yup.number().required('Shift wajib dipilih.').typeError('Shift wajib dipilih.'),
 })
@@ -287,11 +340,14 @@ const updateUser = async (formData) => {
   loading.value = true
   error.value = null
 
-  // Payload: Hapus password jika kosong (tidak diubah)
+  // Payload: Ambil data dari VeeForm
   const payload = {
     ...formData,
+    // Pastikan konversi ke Number di sini
     role_id: Number(formData.role_id),
     shift_id: Number(formData.shift_id),
+    // 🆕 Tambahkan nilai is_active_check_box yang dikonversi ke integer (1 atau 0)
+    is_active: is_active_check_box.value ? 1 : 0,
   }
 
   // Hapus password dari payload jika pengguna tidak mengisinya
@@ -299,11 +355,9 @@ const updateUser = async (formData) => {
     delete payload.password
   }
 
-  // ID pengguna yang akan diperbarui (sudah pasti ada karena userData required)
   const userId = props.userData.id
 
   try {
-    // Gunakan api.patch untuk operasi update
     await api.put(`user/${userId}`, payload)
 
     // Sukses
@@ -312,15 +366,13 @@ const updateUser = async (formData) => {
   } catch (err) {
     console.error('Error saat memperbarui User:', err)
     if (err.response) {
-      // Penanganan error umum
-      error.value = `Gagal menyimpan data. Server Error (${err.response.status}): ${err.response.data.message || 'Periksa kembali input Anda.'}`
-
-      // Penanganan error spesifik dari validasi API (misalnya duplikasi telepon)
       if (err.response.data && err.response.data.errors && err.response.data.errors.phone) {
         error.value = `Nomor telepon sudah digunakan: ${err.response.data.errors.phone[0]}`
+      } else {
+        error.value = `Gagal menyimpan data. Server Error (${err.response.status}): ${err.response.data.message || 'Periksa kembali input Anda.'}`
       }
     } else {
-      error.value = 'Gagal memproses request.'
+      error.value = 'Gagal memproses request. Periksa koneksi jaringan.'
     }
   } finally {
     loading.value = false

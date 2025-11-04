@@ -25,11 +25,11 @@
 
     <div class="px-2 pr-14">
       <h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-        Tambah Pengguna Baru
+        Tambah Karyawan Baru
       </h4>
 
       <p class="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-        Isi detail akun pengguna yang baru.
+        Isi detail akun karyawan yang baru.
       </p>
     </div>
 
@@ -93,54 +93,6 @@
               }"
             />
             <p v-if="!meta.valid && meta.dirty" class="mt-1.5 text-theme-xs text-error-500">
-              {{ errorMessage }}
-            </p>
-          </VeeField>
-        </div>
-
-        <div class="col-span-2 mt-5">
-          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-            Role (Hak Akses)
-          </label>
-          <VeeField name="role_id" v-slot="{ field, meta, errorMessage }">
-            <div class="relative z-20 bg-transparent">
-              <select
-                v-bind="field"
-                :disabled="props.loadingRoles || loading"
-                :class="{
-                  // Gunakan meta.validated untuk menampilkan error setelah submit
-                  'border-error-300 focus:border-error-300 focus:ring-3 focus:ring-error-500/10 dark:border-error-700 dark:focus:border-error-800 pr-11':
-                    !meta.valid && meta.validated,
-                  'dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800': true,
-                }"
-              >
-                <option :value="null" disabled selected>--- Pilih Role ---</option>
-                <option value="1">Administrator</option>
-                <option value="2">HR</option>
-                <option value="3">Karyawan</option>
-              </select>
-              <span
-                class="absolute z-30 text-gray-500 -translate-y-1/2 pointer-events-none right-4 top-1/2 dark:text-gray-400"
-              >
-                <svg
-                  class="stroke-current"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M4.79175 7.396L10.0001 12.6043L15.2084 7.396"
-                    stroke=""
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
-            </div>
-            <p v-if="!meta.valid && meta.validated" class="mt-1.5 text-theme-xs text-error-500">
               {{ errorMessage }}
             </p>
           </VeeField>
@@ -221,7 +173,7 @@
           :disabled="loading"
           class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto disabled:bg-brand-300 disabled:cursor-not-allowed"
         >
-          {{ loading ? 'Menyimpan...' : 'Tambah Pengguna' }}
+          {{ loading ? 'Menyimpan...' : 'Tambah Karyawan' }}
         </button>
       </div>
     </VeeForm>
@@ -252,7 +204,7 @@ const props = defineProps({
 
 const loading = ref(false)
 const error = ref(null)
-const emit = defineEmits(['close', 'userAdded'])
+const emit = defineEmits(['close', 'employeeAdded'])
 
 // --- VALIDATION SCHEMA ---
 // Tidak ada perubahan di schema, karena yup.number().required() sudah benar
@@ -266,31 +218,27 @@ const schema = yup.object({
     .min(10, 'Nomor Telepon minimal 10 digit.')
     .max(14, 'Nomor Telepon maksimal 14 digit.'),
   password: yup.string().required('Password wajib diisi.').min(6, 'Password minimal 6 karakter.'),
-  // role_id dan shift_id akan gagal jika value-nya 'null' (default option)
-  role_id: yup.number().required('Role wajib dipilih.').typeError('Role wajib dipilih.'),
   shift_id: yup.number().required('Shift wajib dipilih.').typeError('Shift wajib dipilih.'),
 })
 
 // --- SUBMIT FUNCTION ---
-const postUser = async (formData, resetForm) => {
+const postEmployee = async (formData, resetForm) => {
   loading.value = true
   error.value = null
 
-  // Pastikan role_id dan shift_id dikirim sebagai angka
   const payload = {
     ...formData,
-    role_id: Number(formData.role_id),
     shift_id: Number(formData.shift_id),
   }
 
   try {
-    await api.post('user', payload)
+    await api.post('employee', payload)
 
-    emit('userAdded')
+    emit('employeeAdded')
     resetForm()
     emit('close')
   } catch (err) {
-    console.error('Error saat menambah User:', err)
+    console.error('Error saat menambah Employee:', err)
     if (err.response) {
       // Penanganan error spesifik dari validasi API (misalnya duplikasi telepon)
       if (err.response.data && err.response.data.errors) {
@@ -313,6 +261,6 @@ const postUser = async (formData, resetForm) => {
 }
 
 const onSubmit = (values, { resetForm }) => {
-  postUser(values, resetForm)
+  postEmployee(values, resetForm)
 }
 </script>
