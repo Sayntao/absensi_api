@@ -42,7 +42,7 @@
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Nama Lengkap
           </label>
-          <VeeField name="name" validate-on-input v-slot="{ field, meta, errorMessage }">
+          <VeeField name="username" validate-on-input v-slot="{ field, meta, errorMessage }">
             <input
               v-bind="field"
               type="text"
@@ -311,7 +311,7 @@ const initialValues = computed(() => {
   const data = props.employeeData || {}
 
   return {
-    name: data.name || '',
+    username: data.username || '',
     phone: data.phone || '',
     password: '', // Password selalu dikosongkan saat modal update dibuka
     role_id: getInitialId(data.role_id),
@@ -321,7 +321,7 @@ const initialValues = computed(() => {
 
 // --- VALIDATION SCHEMA ---
 const schema = yup.object({
-  name: yup.string().required('Nama Lengkap wajib diisi.'),
+  username: yup.string().required('Nama Lengkap wajib diisi.'),
   phone: yup
     .string()
     .required('Nomor Telpon wajib diisi.')

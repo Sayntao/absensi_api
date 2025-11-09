@@ -40,7 +40,7 @@
       </div>
       <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Hapus Pengguna</h3>
       <p class="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
-        Anda yakin ingin menghapus pengguna <b>{{ props.userData.name }}</b
+        Anda yakin ingin menghapus pengguna <b>{{ props.userData.username }}</b
         >? Tindakan ini tidak dapat dibatalkan.
       </p>
     </div>

@@ -18,3 +18,10 @@ $hook['pre_controller'][] = array(
     'filepath' => 'hooks',
     'params'   => array()
 );
+$hook['post_controller_constructor'][] = array(
+    'class'    => 'Token_check',
+    'function' => 'verify_jwt',
+    'filename' => 'Token_check.php',
+    'filepath' => 'hooks',
+    'params'   => array()
+);

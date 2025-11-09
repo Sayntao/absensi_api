@@ -2,8 +2,8 @@
   <AdminLayout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
     <div class="space-y-5 sm:space-y-6">
-      <ComponentCard title="Data Semua Pengguna">
-        <UserTable />
+      <ComponentCard title="Absensi">
+        <Absen />
       </ComponentCard>
     </div>
   </AdminLayout>
@@ -14,6 +14,6 @@ import { ref } from 'vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import ComponentCard from '@/components/common/ComponentCard.vue'
-import UserTable from '@/components/tables/user/UserTable.vue'
-const currentPageTitle = ref('User Management')
+import Absen from '@/components/tables/absen/CameraPhoto.vue'
+const currentPageTitle = ref('Absen')
 </script>

@@ -368,7 +368,7 @@ const columns = [
     cell: (info) => info.getValue(),
     size: 50,
   }),
-  columnHelper.accessor('name', {
+  columnHelper.accessor('username', {
     header: 'Nama Pengguna',
     cell: (info) => h('span', { class: 'font-medium' }, info.getValue()),
   }),

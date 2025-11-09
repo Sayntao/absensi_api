@@ -99,6 +99,37 @@ class User_model extends CI_Model
         return $this->db->delete($this->table);
     }
 
+    /**
+     * Verifies user credentials against the database.
+     *
+     * @param string $username The username to verify
+     * @param string $password The password to verify
+     * @return object|bool Returns user object if credentials are valid, FALSE otherwise
+     */
+    public function verify_credentials($username, $password)
+    {
+        $this->db->select('u.*, r.role_name, s.id as shift_id');
+        $this->db->from($this->table . ' u');
+        $this->db->join($this->role_table . ' r', 'u.role_id = r.id', 'left');
+        $this->db->join($this->shift_table . ' s', 'u.shift_id = s.id', 'left');
+        $this->db->where('u.username', $username);
+        $query = $this->db->get();
+
+        if ($query->num_rows() === 0) {
+            return FALSE;
+        }
+
+        $user = $query->row();
+
+        // Verify password using PHP's password_verify function
+        if (password_verify($password, $user->password)) {
+            unset($user->password); // Remove password from the object for security
+            return $user;
+        }
+
+        return FALSE;
+    }
+
 
     // --------------------------------------------------------------------
     // JOIN QUERIES

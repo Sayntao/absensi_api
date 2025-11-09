@@ -39,7 +39,7 @@
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Nama Lengkap
           </label>
-          <VeeField name="name" validate-on-input v-slot="{ field, meta, errorMessage }">
+          <VeeField name="username" validate-on-input v-slot="{ field, meta, errorMessage }">
             <input
               v-bind="field"
               type="text"
@@ -210,7 +210,7 @@ const emit = defineEmits(['close', 'employeeAdded'])
 // Tidak ada perubahan di schema, karena yup.number().required() sudah benar
 // untuk memvalidasi bahwa null (nilai default select) tidak diizinkan.
 const schema = yup.object({
-  name: yup.string().required('Nama Lengkap wajib diisi.'),
+  username: yup.string().required('Nama Lengkap wajib diisi.'),
   phone: yup
     .string()
     .required('Nomor Telpon wajib diisi.')

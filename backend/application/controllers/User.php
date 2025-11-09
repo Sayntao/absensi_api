@@ -50,7 +50,7 @@ class User extends RestController
 	 */
 	public function index_post()
 	{
-		$name     = $this->post('name');
+		$username     = $this->post('username');
 		$role_id  = $this->post('role_id');
 		$phone    = $this->post('phone');
 		$password = $this->post('password');
@@ -58,7 +58,7 @@ class User extends RestController
 
 
 		// VALIDATION
-		if (empty($name) || empty($role_id) || empty($phone) || empty($password) || empty($shift_id)) {
+		if (empty($username) || empty($role_id) || empty($phone) || empty($password) || empty($shift_id)) {
 			$this->response([
 				'status' => false,
 				'message' => 'All fields (Name, Role ID, Phone, Password, Shift ID) are required.'
@@ -86,7 +86,7 @@ class User extends RestController
 
 		// PROCESS
 		$data = [
-			'name' => $name,
+			'username' => $username,
 			'role_id' => $role_id,
 			'shift_id' => $shift_id,
 			'phone' => $phone,
@@ -122,7 +122,7 @@ class User extends RestController
 	 */
 	public function index_put($id)
 	{
-		$name     = $this->put('name');
+		$username     = $this->put('username');
 		$role_id  = $this->put('role_id');
 		$phone    = $this->put('phone');
 		$password = $this->put('password');
@@ -136,7 +136,7 @@ class User extends RestController
 			return;
 		}
 
-		if (empty($name) || empty($role_id) || empty($phone) || empty($shift_id)) {
+		if (empty($username) || empty($role_id) || empty($phone) || empty($shift_id)) {
 			$this->response([
 				'status' => false,
 				'message' => 'All fields (Name, Role ID, Phone, Shift ID) are required.'
@@ -178,10 +178,24 @@ class User extends RestController
 			return;
 		}
 
+		if (!empty($id)) {
+			$this->db->where('id !=', $id);
+		}
+
+		$username_exist = $this->db->get_where('tb_user', ['username' => $username])->num_rows();
+
+		if ($username_exist > 0) {
+			$this->response([
+				'status' => false,
+				'message' => 'Username already exists. Please use a different username.'
+			], 409); // 409 Conflict
+			return;
+		}
+
 
 		// PROCESS
 		$data = [
-			'name' => $name,
+			'username' => $username,
 			'role_id' => $role_id,
 			'shift_id' => $shift_id,
 			'phone' => $phone,

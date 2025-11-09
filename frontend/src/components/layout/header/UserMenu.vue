@@ -60,6 +60,8 @@
 <script setup lang="ts">
 import { ChevronDownIcon, InfoCircleIcon, LogoutIcon, SettingsIcon, UserCircleIcon } from '@/icons'
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { RouterLink } from 'vue-router'
 
 const dropdownOpen = ref(false)
@@ -75,10 +77,15 @@ const closeDropdown = () => {
   dropdownOpen.value = false
 }
 
+const router = useRouter()
+const authStore = useAuthStore()
+
 const signOut = () => {
-  // Implement sign out logic here
-  console.log('Signing out...')
+  // Remove token and user data from store/localStorage
+  authStore.logout()
   closeDropdown()
+  // Redirect to signin page
+  router.push({ path: '/signin' })
 }
 
 const handleClickOutside = (event: Event) => {

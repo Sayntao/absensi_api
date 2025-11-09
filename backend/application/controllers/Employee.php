@@ -49,12 +49,12 @@ class Employee extends RestController
      */
     public function index_post()
     {
-        $name     = $this->post('name');
+        $username     = $this->post('username');
         $phone    = $this->post('phone');
         $password = $this->post('password');
         $shift_id = $this->post('shift_id');
         // VALIDATION
-        if (empty($name) || empty($phone) || empty($password) || empty($shift_id)) {
+        if (empty($username) || empty($phone) || empty($password) || empty($shift_id)) {
             $this->response([
                 'status' => false,
                 'message' => 'All fields (Name, Phone, Password) are required.'
@@ -73,7 +73,7 @@ class Employee extends RestController
 
         // PROCESS
         $data = [
-            'name' => $name,
+            'username' => $username,
             'phone' => $phone,
             'role_id' => 3,
             'shift_id' => $shift_id,
@@ -109,7 +109,7 @@ class Employee extends RestController
      */
     public function index_put($id)
     {
-        $name     = $this->put('name');
+        $username     = $this->put('username');
         $phone    = $this->put('phone');
         $password = $this->put('password');
         $shift_id = $this->put('shift_id');
@@ -122,7 +122,7 @@ class Employee extends RestController
             return;
         }
 
-        if (empty($name) || empty($phone) || empty($shift_id)) {
+        if (empty($username) || empty($phone) || empty($shift_id)) {
             $this->response([
                 'status' => false,
                 'message' => 'All fields (Name, Role ID, Phone) are required.'
@@ -144,6 +144,20 @@ class Employee extends RestController
             return;
         }
 
+        if (!empty($id)) {
+            $this->db->where('id !=', $id);
+        }
+
+        $username_exist = $this->db->get_where('tb_user', ['username' => $username])->num_rows();
+
+        if ($username_exist > 0) {
+            $this->response([
+                'status' => false,
+                'message' => 'Username already exists. Please use a different username.'
+            ], 409); // 409 Conflict
+            return;
+        }
+
         $employee_data_exist = $this->Employee_model->get_employee_by_id($id);
 
         if (!$employee_data_exist) {
@@ -156,7 +170,7 @@ class Employee extends RestController
 
         // PROCESS
         $data = [
-            'name' =>   $name,
+            'username' =>   $username,
             'role_id' =>   3,
             'shift_id' => $shift_id,
             'phone' =>   $phone,

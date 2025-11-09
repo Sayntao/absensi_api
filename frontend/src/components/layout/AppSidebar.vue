@@ -215,7 +215,7 @@ const menuGroups = [
       {
         icon: CalenderIcon,
         name: 'Absensi',
-        path: '/',
+        path: '/absen',
       },
       {
         icon: ListIcon,
