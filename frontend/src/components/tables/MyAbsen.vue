@@ -46,7 +46,7 @@
       <p>⏳ Memuat data absensi...</p>
     </div>
     <div v-else-if="error" class="p-6 text-center text-red-600 dark:text-red-400">
-      <p class="font-bold">❌ Gagal memuat data!</p>
+      <p class="font-bold">Data Belum Tersedia</p>
       <p class="text-sm">{{ error }}</p>
       <button @click="fetchAttendanceData" class="mt-2 text-sm text-blue-500 hover:underline">
         Coba Muat Ulang
@@ -282,7 +282,7 @@ const fetchAttendanceData = async () => {
   loading.value = true
   error.value = null
   try {
-    const response = await api.get('attendance')
+    const response = await api.get('My_Attendance')
 
     let dataArray = []
     const responseData = response.data

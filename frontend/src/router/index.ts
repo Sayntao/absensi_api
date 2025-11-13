@@ -93,9 +93,19 @@ const router = createRouter({
     {
       path: '/all-absen',
       name: 'All Absen',
-      component: () => import('../views/HR/ReportAllAbsen/index.vue'),
+      component: () => import('../views/Admin/ReportAllAbsen/index.vue'),
       meta: {
         title: 'All Absen',
+        requiresAuth: true,
+      },
+    },
+
+    {
+      path: '/employee-attendance',
+      name: 'Employee Attendance',
+      component: () => import('../views/HR/ReportEmployeeAttendance/index.vue'),
+      meta: {
+        title: 'Employee Attendance',
         requiresAuth: true,
       },
     },

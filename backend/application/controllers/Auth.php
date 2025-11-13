@@ -42,7 +42,7 @@ class Auth extends CI_Controller
             $payload = [
                 'user_id'  => $user->id,
                 'username' => $user->username,
-                'role'     => $user->role_name,
+                'role_id'  => $user->role_id,
                 'shift_id' => $user->shift_id
             ];
 

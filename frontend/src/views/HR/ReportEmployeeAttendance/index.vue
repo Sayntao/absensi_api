@@ -2,8 +2,8 @@
   <AdminLayout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
     <div class="space-y-5 sm:space-y-6">
-      <ComponentCard title="My Absen Table">
-        <MyAbsen />
+      <ComponentCard title="Karyawan Absen">
+        <ReportEmployeeAttendance />
       </ComponentCard>
     </div>
   </AdminLayout>
@@ -14,6 +14,6 @@ import { ref } from 'vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import ComponentCard from '@/components/common/ComponentCard.vue'
-import MyAbsen from '@/components/tables/MyAbsen.vue'
-const currentPageTitle = ref('My Absen')
+import ReportEmployeeAttendance from '@/components/tables/ReportEmployeeAttendance.vue'
+const currentPageTitle = ref('Employee Attendance')
 </script>

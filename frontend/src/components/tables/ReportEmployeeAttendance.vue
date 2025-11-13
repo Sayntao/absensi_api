@@ -282,7 +282,7 @@ const fetchAttendanceData = async () => {
   loading.value = true
   error.value = null
   try {
-    const response = await api.get('attendance')
+    const response = await api.get('Employee_Attendance')
 
     let dataArray = []
     const responseData = response.data

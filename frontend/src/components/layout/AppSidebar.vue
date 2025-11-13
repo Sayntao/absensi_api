@@ -205,7 +205,7 @@ const menuGroups = [
       {
         icon: GridIcon,
         name: 'Dashboard',
-        path: '/',
+        path: '/dashboard',
       },
     ],
   },
@@ -215,7 +215,7 @@ const menuGroups = [
       {
         icon: CalenderIcon,
         name: 'Absensi',
-        path: '/absen',
+        path: '/',
       },
       {
         icon: ListIcon,
@@ -248,7 +248,7 @@ const menuGroups = [
         icon: PageIcon,
         subItems: [
           { name: 'All Absen', path: '/all-absen', pro: false },
-          { name: 'All Absen Download', path: '/error-404', pro: false },
+          { name: 'Employee Attendance', path: '/employee-attendance', pro: false },
         ],
       },
       {

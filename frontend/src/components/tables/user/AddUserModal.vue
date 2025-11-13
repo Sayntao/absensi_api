@@ -37,13 +37,13 @@
       <div class="px-2 overflow-y-auto custom-scrollbar">
         <div class="col-span-2">
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-            Nama Lengkap
+            Username
           </label>
           <VeeField name="username" validate-on-input v-slot="{ field, meta, errorMessage }">
             <input
               v-bind="field"
               type="text"
-              placeholder="Masukkan Nama Lengkap"
+              placeholder="Masukkan Username"
               :class="{
                 'border-error-300 focus:border-error-300 focus:ring-3 focus:ring-error-500/10 dark:border-error-700 dark:focus:border-error-800 pr-10':
                   !meta.valid && meta.dirty,

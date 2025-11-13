@@ -1,4 +1,7 @@
+// services/api.js
+
 import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
 const api = axios.create({
   baseURL: 'http://localhost/project_absensi/backend/',
@@ -16,7 +19,7 @@ const api = axios.create({
   ],
 })
 
-// Attach token automatically from localStorage (if exists)
+// Interceptor Request: Tambahkan Token
 api.interceptors.request.use((config) => {
   try {
     const token = localStorage.getItem('authToken')
@@ -29,5 +32,28 @@ api.interceptors.request.use((config) => {
   }
   return config
 })
+
+// Interceptor Response: Tangani Token Expired (401 Unauthorized)
+api.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error) => {
+    // Cek apakah ada respons dan statusnya 401
+    if (error.response && error.response.status === 401) {
+      const authStore = useAuthStore()
+
+      console.error('Token Expired atau Unauthorized. Redirecting to Signin.')
+
+      // Panggil fungsi baru yang spesifik untuk redirect
+      authStore.redirectToSignin('Token Anda sudah habis masa berlakunya. Silakan masuk kembali.')
+
+      // Kembalikan Promise.reject agar request gagal ini tidak diproses lebih lanjut
+      return Promise.reject(error)
+    }
+
+    return Promise.reject(error)
+  },
+)
 
 export default api

@@ -21,30 +21,18 @@ class Attendance extends RestController
     }
 
     // --- GET Attendance (Read) ---
-    public function index_get($id = null)
+    public function index_get()
     {
-        if ($id) {
-            $data = $this->Attendance_model->get_attendance_with_details($id);
-            if (empty($data)) {
-                $this->response([
-                    'status' => false,
-                    'message' => 'Data not found'
-                ], RestController::HTTP_NOT_FOUND); // 404 Not Found
-            } else {
-                $this->response($data, RestController::HTTP_OK); // 200 OK
-            }
-        } else {
-            $data = $this->Attendance_model->get_attendance_with_details();
-            $this->response($data, RestController::HTTP_OK); // 200 OK
-        }
+        $data = $this->Attendance_model->get_attendance_with_details();
+        $this->response($data, RestController::HTTP_OK); // 200 OK
     }
-
 
     // --- POST Attendance (Create) / Absen Masuk ---
     public function index_post()
     {
         $current_user = $this->auth_user;
         $user_id = $current_user->user_id ?? 0;
+        $role_id = $current_user->role_id ?? 0;
         $shift_id = $current_user->shift_id ?? 0;
         $date = date('Y-m-d');
         $check_in_time = date('H:i:s');
@@ -82,6 +70,7 @@ class Attendance extends RestController
         // PROCESS
         $data = [
             'user_id' => $user_id,
+            'role_id' => $role_id,
             'shift_id' => $shift_id,
             'date' => $date,
             'check_in_time' => $check_in_time,
@@ -148,7 +137,9 @@ class Attendance extends RestController
 
         // Cek status pulang cepat
         if ($check_out_time <  $shift_data->check_out_time) {
-            $check_out_status = 'going Early';
+            $check_out_status = 'Early Leave';
+        } else if ($check_out_time > $shift_data->check_out_time) {
+            $check_out_status = 'Overtime';
         } else {
             $check_out_status = 'On Time';
         }
@@ -181,46 +172,6 @@ class Attendance extends RestController
                 [
                     'status' => true,
                     'message' => 'Attendance updated successfully'
-                ],
-                RestController::HTTP_OK // 200 OK
-            );
-        }
-    }
-
-    // --- DELETE Attendance (Delete) ---
-    public function index_delete($id)
-    {
-        // VALIDATION
-        if (empty($id)) {
-            $this->response([
-                'status' => false,
-                'message' => 'ID is required for deleting attendance'
-            ], RestController::HTTP_BAD_REQUEST);
-        }
-
-        $attendance_data_exist = $this->Attendance_model->get_attendance_by_id($id);
-
-        if (!$attendance_data_exist) {
-            $this->response([
-                'status' => false,
-                'message' => 'Attendance with ID ' . $id . ' not found'
-            ], RestController::HTTP_NOT_FOUND); // 404 Not Found
-            return;
-        }
-
-        // PROCESS
-        $delete = $this->Attendance_model->delete_attendance($id);
-
-        if (!$delete) {
-            $this->response([
-                'status' => false,
-                'message' => 'Failed to delete attendance'
-            ], RestController::HTTP_INTERNAL_ERROR); // 500 Internal Server Error
-        } else {
-            $this->response(
-                [
-                    'status' => true,
-                    'message' => 'Attendance deleted successfully'
                 ],
                 RestController::HTTP_OK // 200 OK
             );

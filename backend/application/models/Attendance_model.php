@@ -92,14 +92,38 @@
         // JOIN QUERIES                                                        
         // --------------------------------------------------------------------
 
-        public function get_attendance_with_details($id)
+        public function get_attendance_with_details()
         {
-            $this->db->select('a.*, e.name as username, s.shift_name');
+            $this->db->select('a.*, e.username, s.shift_name, r.role_name');
             $this->db->from('tb_attendance a');
             $this->db->join('tb_user e', 'a.user_id = e.id', 'left');
-            $this->db->join('tb_shifts s', 'a.shift_id = s.id', 'left');
-            $this->db->where('a.id', $id);
+            $this->db->join('tb_shift s', 'a.shift_id = s.id', 'left');
+            $this->db->join('tb_role r', 'e.role_id = r.id', 'left');
             $query = $this->db->get();
-            return $query->row();
+            return $query->result();
+        }
+
+        public function get_attendance_with_details_by_user_id($user_id)
+        {
+            $this->db->select('a.*, e.username, s.shift_name, r.role_name');
+            $this->db->from('tb_attendance a');
+            $this->db->join('tb_user e', 'a.user_id = e.id', 'left');
+            $this->db->join('tb_shift s', 'a.shift_id = s.id', 'left');
+            $this->db->join('tb_role r', 'e.role_id = r.id', 'left');
+            $this->db->where('a.user_id', $user_id);
+            $query = $this->db->get();
+            return $query->result();
+        }
+
+        public function get_attendance_with_details_by_employee()
+        {
+            $this->db->select('a.*, e.username, s.shift_name, r.role_name');
+            $this->db->from('tb_attendance a');
+            $this->db->join('tb_user e', 'a.user_id = e.id', 'left');
+            $this->db->join('tb_shift s', 'a.shift_id = s.id', 'left');
+            $this->db->join('tb_role r', 'e.role_id = r.id', 'left');
+            $this->db->where('r.role_name', 'Employee');
+            $query = $this->db->get();
+            return $query->result();
         }
     }

@@ -37,13 +37,13 @@
       <div class="px-2 overflow-y-auto custom-scrollbar">
         <div class="col-span-2">
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-            Nama Lengkap
+            Username Karyawan
           </label>
           <VeeField name="username" validate-on-input v-slot="{ field, meta, errorMessage }">
             <input
               v-bind="field"
               type="text"
-              placeholder="Masukkan Nama Lengkap"
+              placeholder="Masukkan Username Karyawan"
               :class="{
                 'border-error-300 focus:border-error-300 focus:ring-3 focus:ring-error-500/10 dark:border-error-700 dark:focus:border-error-800 pr-10':
                   !meta.valid && meta.dirty,
@@ -210,7 +210,7 @@ const emit = defineEmits(['close', 'employeeAdded'])
 // Tidak ada perubahan di schema, karena yup.number().required() sudah benar
 // untuk memvalidasi bahwa null (nilai default select) tidak diizinkan.
 const schema = yup.object({
-  username: yup.string().required('Nama Lengkap wajib diisi.'),
+  username: yup.string().required('Username Karyawan wajib diisi.'),
   phone: yup
     .string()
     .required('Nomor Telpon wajib diisi.')
