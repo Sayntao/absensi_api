@@ -50,6 +50,10 @@ class User extends RestController
 	 */
 	public function index_post()
 	{
+
+		$current_user = $this->auth_user;
+		$creator_name = $current_user->username ?? 'Unknown';
+
 		$username     = $this->post('username');
 		$role_id  = $this->post('role_id');
 		$phone    = $this->post('phone');
@@ -93,7 +97,7 @@ class User extends RestController
 			'password' => password_hash($password, PASSWORD_BCRYPT),
 			'is_active' => 1,
 			'created_at' => date('Y-m-d H:i:s'),
-			'created_by' => $this->post('created_by') // Default 1 jika tidak ada created_by
+			'created_by' => $creator_name
 		];
 
 		$insert_id = $this->User_model->insert_user($data);
@@ -122,11 +126,16 @@ class User extends RestController
 	 */
 	public function index_put($id)
 	{
-		$username     = $this->put('username');
+
+		$current_user = $this->auth_user;
+		$updater_name = $current_user->username ?? 'Unknown';
+
+		$username = $this->put('username');
 		$role_id  = $this->put('role_id');
 		$phone    = $this->put('phone');
 		$password = $this->put('password');
 		$shift_id = $this->put('shift_id');
+
 		// VALIDATION
 		if (empty($id)) {
 			$this->response([
@@ -202,7 +211,7 @@ class User extends RestController
 			'password' => password_hash($password, PASSWORD_BCRYPT),
 			'is_active' => $this->put('is_active'),
 			'updated_at' => date('Y-m-d H:i:s'),
-			'updated_by' => $this->put('updated_by') // Default 1 jika tidak ada created_by
+			'updated_by' => $updater_name // Default 1 jika tidak ada created_by
 		];
 
 		if (empty($data)) {

@@ -49,6 +49,9 @@ class Employee extends RestController
      */
     public function index_post()
     {
+
+        $current_user = $this->auth_user;
+        $creator_name = $current_user->username ?? 'Unknown';
         $username     = $this->post('username');
         $phone    = $this->post('phone');
         $password = $this->post('password');
@@ -80,7 +83,7 @@ class Employee extends RestController
             'password' => password_hash($password, PASSWORD_BCRYPT),
             'is_active' => 1,
             'created_at' => date('Y-m-d H:i:s'),
-            'created_by' => $this->post('created_by')
+            'created_by' => $creator_name
         ];
 
         $insert_id = $this->Employee_model->insert_employee($data);
@@ -109,6 +112,8 @@ class Employee extends RestController
      */
     public function index_put($id)
     {
+        $current_user = $this->auth_user;
+        $updater_name = $current_user->username ?? 'Unknown';
         $username     = $this->put('username');
         $phone    = $this->put('phone');
         $password = $this->put('password');
@@ -177,7 +182,7 @@ class Employee extends RestController
             'password' =>   $password,
             'is_active' => $this->put('is_active'),
             'updated_at' => date('Y-m-d H:i:s'),
-            'updated_by' => $this->put('updated_by')
+            'updated_by' => $updater_name
 
         ];
         if (empty($data)) {

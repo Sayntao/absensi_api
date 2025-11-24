@@ -27,7 +27,7 @@ class Jwt_lib
     /**
      * Membuat token JWT
      */
-    public function encode_token($data, $exp_time = 7200)
+    public function encode_token($data, $exp_time = 86400)
     {
         $iat = time();
         $exp = $iat + $exp_time;

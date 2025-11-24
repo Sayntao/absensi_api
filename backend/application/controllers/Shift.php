@@ -49,6 +49,9 @@ class Shift extends RestController
      */
     public function index_post()
     {
+        $current_user = $this->auth_user;
+        $creator_name = $current_user->username ?? 'Unknown';
+
         $shift_name     = $this->post('shift_name');
         $check_in_time    = $this->post('check_in_time');
         $check_out_time = $this->post('check_out_time');
@@ -68,7 +71,7 @@ class Shift extends RestController
             'check_in_time' => $check_in_time,
             'check_out_time' => $check_out_time,
             'created_at' => date('Y-m-d H:i:s'),
-            'created_by' => $this->post('created_by')
+            'created_by' => $creator_name
         ];
 
         $insert_id = $this->Shift_model->insert_shift($data);
@@ -97,6 +100,8 @@ class Shift extends RestController
      */
     public function index_put($id)
     {
+        $current_user = $this->auth_user;
+        $updater_name = $current_user->username ?? 'Unknown';
         $shift_name     = $this->put('shift_name');
         $check_in_time    = $this->put('check_in_time');
         $check_out_time = $this->put('check_out_time');
@@ -136,7 +141,7 @@ class Shift extends RestController
             'check_in_time' => $check_in_time,
             'check_out_time' => $check_out_time,
             'updated_at' => date('Y-m-d H:i:s'),
-            'updated_by' => $this->put('updated_by')
+            'updated_by' => $updater_name
         ];
         if (empty($data)) {
             $this->response([
